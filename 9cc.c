@@ -37,7 +37,7 @@ void tokenize(char *p) {
             continue;
         }
 
-        if (*p == '+' || *p == '-') {
+        if (*p == '+' || *p == '-' || *p == '*' || *p == '/') {
             tokens[i].ty = *p;
             tokens[i].input = p;
             i++;
@@ -89,12 +89,10 @@ Node *new_node_num(int val) {
     return node;
 }
 
+Node *mul();
+
 Node *expr() {
-    if (tokens[pos].ty != TK_NUM) {
-        error("expect number for first expr %s", tokens[pos].input);
-        return NULL;
-    }
-    Node *lhs = new_node_num(tokens[pos++].val);
+    Node *lhs = mul();
     if (tokens[pos].ty == '+') {
         pos++;
         return new_node('+', lhs, expr());
@@ -102,6 +100,23 @@ Node *expr() {
     if (tokens[pos].ty == '-') {
         pos++;
         return new_node('-', lhs, expr());
+    }
+    return lhs;
+}
+
+Node *mul() {
+    if (tokens[pos].ty != TK_NUM) {
+        error("expect number for first expr %s", tokens[pos].input);
+        return NULL;
+    }
+    Node *lhs = new_node_num(tokens[pos++].val);
+    if (tokens[pos].ty == '*') {
+        pos++;
+        return new_node('*', lhs, mul());
+    }
+    if (tokens[pos].ty == '/') {
+        pos++;
+        return new_node('/', lhs, mul());
     }
     return lhs;
 }
@@ -123,6 +138,13 @@ void gen(Node *node) {
         break;
     case '-':
         printf("  sub rax, rdi\n");
+        break;
+    case '*':
+        printf("  mul rdi\n");
+        break;
+    case '/':
+        printf("  mov rdx, 0\n");
+        printf("  div rdi\n");
         break;
     }
 
