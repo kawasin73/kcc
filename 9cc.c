@@ -13,6 +13,10 @@ void error(char *fmt, ...) {
     exit(1);
 }
 
+// ================================
+// Tokenizer
+// ================================
+
 // token type
 enum {
     TK_NUM = 256,
@@ -37,7 +41,7 @@ void tokenize(char *p) {
             continue;
         }
 
-        if (*p == '+' || *p == '-' || *p == '*' || *p == '/') {
+        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')') {
             tokens[i].ty = *p;
             tokens[i].input = p;
             i++;
@@ -60,6 +64,10 @@ void tokenize(char *p) {
     tokens[i].ty = TK_EOF;
     tokens[i].input = p;
 }
+
+// ================================
+// AST Parser
+// ================================
 
 enum {
     ND_NUM = 256,
@@ -143,6 +151,10 @@ Node *term() {
     pos++;
     return node;
 }
+
+// ================================
+// ASM Generator
+// ================================
 
 void gen(Node *node) {
     if (node->ty == ND_NUM) {
