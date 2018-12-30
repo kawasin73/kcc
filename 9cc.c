@@ -90,6 +90,7 @@ Node *new_node_num(int val) {
 }
 
 Node *mul();
+Node *term();
 
 Node *expr() {
     Node *lhs = mul();
@@ -105,11 +106,7 @@ Node *expr() {
 }
 
 Node *mul() {
-    if (tokens[pos].ty != TK_NUM) {
-        error("expect number for first expr %s", tokens[pos].input);
-        return NULL;
-    }
-    Node *lhs = new_node_num(tokens[pos++].val);
+    Node *lhs = term();
     if (tokens[pos].ty == '*') {
         pos++;
         return new_node('*', lhs, mul());
@@ -119,6 +116,19 @@ Node *mul() {
         return new_node('/', lhs, mul());
     }
     return lhs;
+}
+
+Node *term() {
+    if (tokens[pos].ty == TK_NUM)
+        return new_node_num(tokens[pos++].val);
+    if (tokens[pos].ty != '(')
+        error("expect number or ( %s", tokens[pos].input);
+    pos++;
+    Node *node = expr();
+    if (tokens[pos].ty != ')')
+        error("expect ) %s", tokens[pos].input);
+    pos++;
+    return node;
 }
 
 void gen(Node *node) {
