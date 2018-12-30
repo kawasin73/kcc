@@ -143,11 +143,11 @@ Node *term() {
     if (tokens[pos].ty == TK_NUM)
         return new_node_num(tokens[pos++].val);
     if (tokens[pos].ty != '(')
-        error("expect number or ( %s", tokens[pos].input);
+        error("expect number or (: %s", tokens[pos].input);
     pos++;
     Node *node = expr();
     if (tokens[pos].ty != ')')
-        error("expect ) %s", tokens[pos].input);
+        error("expect ): %s", tokens[pos].input);
     pos++;
     return node;
 }
