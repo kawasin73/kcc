@@ -14,6 +14,7 @@ void test_vector() {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-conversion"
+#pragma GCC diagnostic ignored "-Wint-to-void-pointer-cast"
     for (int i = 0; i < 100; i++) {
         vec_push(vec, (void *)i);
     }
@@ -25,7 +26,23 @@ void test_vector() {
     expect(__LINE__, 99, (int)vec->data[99]);
 }
 
+void test_map() {
+    Map *map = new_map();
+    expect(__LINE__, 0, (int)map_get(map, "foo"));
+
+    map_put(map, "foo", (void *)2);
+    expect(__LINE__, 2, (int)map_get(map, "foo"));
+
+    map_put(map, "bar", (void *)4);
+    expect(__LINE__, 2, (int)map_get(map, "foo"));
+    expect(__LINE__, 4, (int)map_get(map, "bar"));
+
+    map_put(map, "foo", (void *)6);
+    expect(__LINE__, 6, (int)map_get(map, "foo"));
+}
+
 void run_test() {
     test_vector();
+    test_map();
     printf("OK\n");
 }
