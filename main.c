@@ -13,7 +13,8 @@ int main(int argc, char **argv) {
     }
 
     Vector *tokens = tokenize(argv[1]);
-    Vector *codes = parse(tokens);
-    gen(codes);
+    Vector *nodes = parse(tokens);
+    Program *program = gen_ir(nodes);
+    gen(program);
     return 0;
 }

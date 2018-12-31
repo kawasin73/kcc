@@ -45,6 +45,7 @@ enum {
 typedef struct {
     int ty;      // token type
     int val;     // number value for TK_NUM
+    char *name;  // name for TK_IDENT
     char *input; // original token (for error message)
 } Token;
 
@@ -66,13 +67,39 @@ typedef struct Node {
     struct Node *lhs;
     struct Node *rhs;
     int val;          // ty == ND_NUM
-    char name;        // ty == ND_IDENT
+    char *name;       // ty == ND_IDENT
 } Node;
 
 Vector *parse(Vector *tokens);
 
 // ================================
+// ir.c
+// ================================
+
+enum {
+    IR_PUSH_IMM = 256,
+    IR_PUSH_VAR_PTR,
+    IR_POP,
+    IR_LOAD_VAL,
+    IR_ASSIGN,
+    IR_EQ,
+    IR_NE,
+};
+
+typedef struct {
+    int ty;
+    int val;
+} IR;
+
+typedef struct {
+    Vector *codes;
+    int varsiz;
+} Program;
+
+Program *gen_ir(Vector *nodes);
+
+// ================================
 // gen.c
 // ================================
 
-void gen(Vector *codes);
+void gen(Program *program);

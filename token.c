@@ -23,8 +23,14 @@ Vector *tokenize(char *p) {
             continue;
         }
 
-        if ('a' <= *p && *p <= 'z') {
-            add_token(TK_IDENT, p++);
+        if (isalpha(*p) || *p == '_') {
+            int len = 1;
+            while (isalpha(p[len]) || p[len] == '_' || isdigit(p[len])) {
+                len++;
+            }
+            Token *t =add_token(TK_IDENT, p);
+            t->name = strndup(p, len);
+            p+=len;
             continue;
         }
 

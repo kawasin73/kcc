@@ -1,34 +1,25 @@
 #include <stdio.h>
 #include "kcc.h"
 
-// push indicated address
-static void gen_lval(Node *node) {
-    if (node->ty == ND_IDENT) {
+static void gen_stmt(IR *ir) {
+    switch (ir->ty) {
+    case IR_PUSH_IMM:
+        printf("  push %d\n", ir->val);
+        return;
+    case IR_PUSH_VAR_PTR:
         printf("  mov rax, rbp\n");
-        printf("  sub rax, %d\n", ('z' - node->name + 1) * 8);
+        printf("  sub rax, %d\n", ir->val);
         printf("  push rax\n");
         return;
-    }
-    error("invalid value for assign");
-}
-
-static void gen_stmt(Node *node) {
-    if (node->ty == ND_NUM) {
-        printf("  push %d\n", node->val);
+    case IR_POP:
+        printf("  pop rax\n");
         return;
-    }
-
-    if (node->ty == ND_IDENT) {
-        gen_lval(node);
+    case IR_LOAD_VAL:
         printf("  pop rax\n");
         printf("  mov rax, [rax]\n");
         printf("  push rax\n");
         return;
-    }
-
-    if (node->ty == '=') {
-        gen_lval(node->lhs);
-        gen_stmt(node->rhs);
+    case IR_ASSIGN:
         printf("  pop rdi\n");
         printf("  pop rax\n");
         printf("  mov [rax], rdi\n");
@@ -36,13 +27,10 @@ static void gen_stmt(Node *node) {
         return;
     }
 
-    gen_stmt(node->lhs);
-    gen_stmt(node->rhs);
-
     printf("  pop rdi\n");
     printf("  pop rax\n");
 
-    switch (node->ty) {
+    switch (ir->ty) {
     case '+':
         printf("  add rax, rdi\n");
         break;
@@ -56,22 +44,24 @@ static void gen_stmt(Node *node) {
         printf("  mov rdx, 0\n");
         printf("  div rdi\n");
         break;
-    case ND_EQ:
+    case IR_EQ:
         printf("  cmp rdi, rax\n");
         printf("  sete al\n");
         printf("  movzx rax, al\n");
         break;
-    case ND_NE:
+    case IR_NE:
         printf("  cmp rdi, rax\n");
         printf("  setne al\n");
         printf("  movzx rax, al\n");
         break;
+    default:
+        error("unexpected IR ty %d", ir->ty);
     }
 
     printf("  push rax\n");
 }
 
-void gen(Vector *codes) {
+void gen(Program *program) {
     printf(".intel_syntax noprefix\n");
     printf(".global _main\n");
     printf("_main:\n");
@@ -80,13 +70,10 @@ void gen(Vector *codes) {
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
     // allocate stack frame for 26 * 8 bytes
-    printf("  sub rsp, 208\n");
+    printf("  sub rsp, %d\n", program->varsiz);
 
-    for (int i = 0; codes->data[i]; i++) {
-        gen_stmt(codes->data[i]);
-
-        // last statement is return value
-        printf("  pop rax\n");
+    for (int i = 0; program->codes->data[i]; i++) {
+        gen_stmt(program->codes->data[i]);
     }
 
     // epilogue

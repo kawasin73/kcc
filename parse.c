@@ -20,7 +20,7 @@ static Node *new_node_num(int val) {
     return node;
 }
 
-static Node *new_node_ident(char name) {
+static Node *new_node_ident(char *name) {
     Node *node = malloc(sizeof(Node));
     node->ty = ND_IDENT;
     node->name = name;
@@ -51,7 +51,7 @@ static Node *primary() {
     if (t->ty == TK_NUM)
         return new_node_num(t->val);
     if (t->ty == TK_IDENT)
-        return new_node_ident(*t->input);
+        return new_node_ident(t->name);
     if (t->ty != '(')
         error("expect number or (: %s", t->input);
     Node *node = assign();
