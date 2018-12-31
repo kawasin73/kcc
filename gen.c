@@ -12,7 +12,7 @@ void gen_lval(Node *node) {
     error("invalid value for assign");
 }
 
-void gen(Node *node) {
+void gen_stmt(Node *node) {
     if (node->ty == ND_NUM) {
         printf("  push %d\n", node->val);
         return;
@@ -28,7 +28,7 @@ void gen(Node *node) {
 
     if (node->ty == '=') {
         gen_lval(node->lhs);
-        gen(node->rhs);
+        gen_stmt(node->rhs);
         printf("  pop rdi\n");
         printf("  pop rax\n");
         printf("  mov [rax], rdi\n");
@@ -36,8 +36,8 @@ void gen(Node *node) {
         return;
     }
 
-    gen(node->lhs);
-    gen(node->rhs);
+    gen_stmt(node->lhs);
+    gen_stmt(node->rhs);
 
     printf("  pop rdi\n");
     printf("  pop rax\n");
@@ -69,4 +69,28 @@ void gen(Node *node) {
     }
 
     printf("  push rax\n");
+}
+
+void gen() {
+    printf(".intel_syntax noprefix\n");
+    printf(".global _main\n");
+    printf("_main:\n");
+
+    // prologue
+    printf("  push rbp\n");
+    printf("  mov rbp, rsp\n");
+    // allocate stack frame for 26 * 8 bytes
+    printf("  sub rsp, 208\n");
+
+    for (int i = 0; code[i]; i++) {
+        gen_stmt(code[i]);
+
+        // last statement is return value
+        printf("  pop rax\n");
+    }
+
+    // epilogue
+    printf("  mov rsp, rbp\n");
+    printf("  pop rbp\n");
+    printf("  ret\n");
 }

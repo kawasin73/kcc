@@ -54,4 +54,4 @@ void parse();
 // gen.c
 // ================================
 
-void gen(Node *node);
+void gen();
