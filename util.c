@@ -32,6 +32,14 @@ void map_put(Map *map, char *key, void *val) {
     vec_push(map->vals, val);
 }
 
+int map_exists(Map *map, char *key) {
+    for (int i = 0; i < map->keys->len; i++) {
+        if (strcmp(map->keys->data[i], key) == 0)
+            return 1;
+    }
+    return 0;
+}
+
 void *map_get(Map *map, char *key) {
     for (int i = map->keys->len - 1; i >= 0; i--) {
         if (strcmp(map->keys->data[i], key) == 0) {

@@ -29,9 +29,11 @@ void test_vector() {
 void test_map() {
     Map *map = new_map();
     expect(__LINE__, 0, (int)map_get(map, "foo"));
+    expect(__LINE__, 0, (int)map_exists(map, "foo"));
 
     map_put(map, "foo", (void *)2);
     expect(__LINE__, 2, (int)map_get(map, "foo"));
+    expect(__LINE__, 1, (int)map_exists(map, "foo"));
 
     map_put(map, "bar", (void *)4);
     expect(__LINE__, 2, (int)map_get(map, "foo"));

@@ -18,6 +18,7 @@ void vec_push(Vector *vec, void *elem);
 
 Map *new_map();
 void map_put(Map *map, char *key, void *val);
+int map_exists(Map *map, char *key);
 void *map_get(Map *map, char *key);
 
 void error(char *fmt, ...);
