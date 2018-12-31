@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-
+#include "kcc.h"
 
 void error(char *fmt, ...) {
     va_list ap;
