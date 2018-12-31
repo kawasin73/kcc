@@ -1,3 +1,4 @@
+CC=gcc
 CFLAGS=-Wall -std=c11
 SRCS=$(wildcard *.c)
 OBJS=$(SRCS:.c=.o)
@@ -8,6 +9,7 @@ kcc: $(OBJS)
 $(OBJS): kcc.h
 
 test: kcc
+	./kcc -test
 	./test.sh
 
 clean:
