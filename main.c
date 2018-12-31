@@ -21,6 +21,8 @@ void error(char *fmt, ...) {
 enum {
     TK_NUM = 256,
     TK_IDENT,
+    TK_EQ,
+    TK_NE,
     TK_EOF,
 };
 
@@ -47,6 +49,22 @@ void tokenize(char *p) {
             tokens[i].input = p;
             i++;
             p++;
+            continue;
+        }
+
+        if (!strncmp(p, "==", 2)) {
+            tokens[i].ty = TK_EQ;
+            tokens[i].input = p;
+            i++;
+            p+=2;
+            continue;
+        }
+
+        if (!strncmp(p, "!=", 2)) {
+            tokens[i].ty = TK_NE;
+            tokens[i].input = p;
+            i++;
+            p+=2;
             continue;
         }
 
@@ -81,6 +99,8 @@ void tokenize(char *p) {
 enum {
     ND_NUM = 256,
     ND_IDENT,
+    ND_EQ,
+    ND_NE,
 };
 
 int pos = 0;
@@ -131,8 +151,11 @@ int consume(int c) {
 //
 // program: assign program2
 // program2: none | assign program2
-// assign: expr assign2 ";"
-// assign2: none | "=" expr assign2
+// assign: equality assign2 ";"
+// assign2: none | "=" equality assign2
+// equality: expr
+// equality: expr "==" expr
+// equality: expr "!=" expr
 // expr: mul
 // expr: mul "+" expr
 // expr: mul "-" expr
@@ -140,15 +163,17 @@ int consume(int c) {
 // mul: term "*" mul
 // mul: term "/" mul
 // term: number | ident
-// term: "(" expr ")"
+// term: "(" equality ")"
 // number: digit | digit number
 // digit: "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
 // ident: "a" ~ "z"
 
 Node *assign();
+Node *equality();
+Node *expr();
 Node *mul();
 Node *term();
-Node *expr();
+
 
 void program() {
     Node *node = assign();
@@ -164,9 +189,20 @@ void program() {
 }
 
 Node *assign() {
-    Node *lhs = expr();
+    Node *lhs = equality();
     if (consume('=')) {
         return new_node('=', lhs, assign());
+    }
+    return lhs;
+}
+
+Node *equality() {
+    Node *lhs = expr();
+    if (consume(TK_EQ)) {
+        return new_node(ND_EQ, lhs, expr());
+    }
+    if (consume(TK_NE)) {
+        return new_node(ND_NE, lhs, expr());
     }
     return lhs;
 }
@@ -200,7 +236,7 @@ Node *term() {
         return new_node_ident(*tokens[pos++].input);
     if (!consume('('))
         error("expect number or (: %s", tokens[pos].input);
-    Node *node = expr();
+    Node *node = equality();
     if (!consume(')'))
         error("expect ): %s", tokens[pos].input);
     return node;
@@ -264,6 +300,16 @@ void gen(Node *node) {
     case '/':
         printf("  mov rdx, 0\n");
         printf("  div rdi\n");
+        break;
+    case ND_EQ:
+        printf("  cmp rdi, rax\n");
+        printf("  sete al\n");
+        printf("  movzx rax, al\n");
+        break;
+    case ND_NE:
+        printf("  cmp rdi, rax\n");
+        printf("  setne al\n");
+        printf("  movzx rax, al\n");
         break;
     }
 
