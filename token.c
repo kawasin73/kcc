@@ -13,6 +13,13 @@ static Token *add_token(int ty, char *intput) {
     return token;
 }
 
+static struct {
+    char *name;
+    int ty;
+} symbols[] = {
+    {"==", TK_EQ}, {"!=", TK_NE},
+};
+
 // parse p to tokens
 Vector *tokenize(char *p) {
     tokens = new_vector();
@@ -23,6 +30,16 @@ Vector *tokenize(char *p) {
             continue;
         }
 
+        for (int i = 0; symbols[i].name; i++) {
+            char *name = symbols[i].name;
+            int len = strlen(name);
+            if (strncmp(p, name, len) == 0) {
+                add_token(symbols[i].ty, p);
+                p += len;
+                continue;
+            }
+        }
+
         if (isalpha(*p) || *p == '_') {
             int len = 1;
             while (isalpha(p[len]) || p[len] == '_' || isdigit(p[len])) {
@@ -31,18 +48,6 @@ Vector *tokenize(char *p) {
             Token *t =add_token(TK_IDENT, p);
             t->name = strndup(p, len);
             p+=len;
-            continue;
-        }
-
-        if (!strncmp(p, "==", 2)) {
-            add_token(TK_EQ, p);
-            p+=2;
-            continue;
-        }
-
-        if (!strncmp(p, "!=", 2)) {
-            add_token(TK_NE, p);
-            p+=2;
             continue;
         }
 
