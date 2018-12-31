@@ -20,6 +20,7 @@ void error(char *fmt, ...) {
 // token type
 enum {
     TK_NUM = 256,
+    TK_IDENT,
     TK_EOF,
 };
 
@@ -41,7 +42,15 @@ void tokenize(char *p) {
             continue;
         }
 
-        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')') {
+        if ('a' <= *p && *p <= 'z') {
+            tokens[i].ty = TK_IDENT;
+            tokens[i].input = p;
+            i++;
+            p++;
+            continue;
+        }
+
+        if (strchr("+-*/()=;", *p)) {
             tokens[i].ty = *p;
             tokens[i].input = p;
             i++;
@@ -71,6 +80,7 @@ void tokenize(char *p) {
 
 enum {
     ND_NUM = 256,
+    ND_IDENT,
 };
 
 int pos = 0;
@@ -79,8 +89,12 @@ typedef struct Node {
     int ty;
     struct Node *lhs;
     struct Node *rhs;
-    int val;
+    int val;          // ty == ND_NUM
+    char name;        // ty == ND_IDENT
 } Node;
+
+Node *code[100];
+int cur = 0;
 
 Node *new_node(int ty, Node *lhs, Node *rhs) {
     Node *node = malloc(sizeof(Node));
@@ -97,6 +111,13 @@ Node *new_node_num(int val) {
     return node;
 }
 
+Node *new_node_ident(char name) {
+    Node *node = malloc(sizeof(Node));
+    node->ty = ND_IDENT;
+    node->name = name;
+    return node;
+}
+
 // returns true (1) or false (0)
 int consume(int c) {
     if (tokens[pos].ty != c) {
@@ -108,19 +129,47 @@ int consume(int c) {
 
 // Parser Structure
 //
+// program: assign program2
+// program2: none | assign program2
+// assign: expr assign2 ";"
+// assign2: none | "=" expr assign2
 // expr: mul
 // expr: mul "+" expr
 // expr: mul "-" expr
 // mul: term
 // mul: term "*" mul
 // mul: term "/" mul
-// term: number
+// term: number | ident
 // term: "(" expr ")"
 // number: digit | digit number
 // digit: "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+// ident: "a" ~ "z"
 
+Node *assign();
 Node *mul();
 Node *term();
+Node *expr();
+
+void program() {
+    Node *node = assign();
+    if (!consume(';')) {
+        error("expect ;: %s\n", tokens[pos].input);
+    }
+    code[cur] = node;
+    cur++;
+    if (tokens[pos].ty != TK_EOF) {
+        program();
+    }
+    code[cur] = NULL;
+}
+
+Node *assign() {
+    Node *lhs = expr();
+    if (consume('=')) {
+        return new_node('=', lhs, assign());
+    }
+    return lhs;
+}
 
 Node *expr() {
     Node *lhs = mul();
@@ -147,6 +196,8 @@ Node *mul() {
 Node *term() {
     if (tokens[pos].ty == TK_NUM)
         return new_node_num(tokens[pos++].val);
+    if (tokens[pos].ty == TK_IDENT)
+        return new_node_ident(*tokens[pos++].input);
     if (!consume('('))
         error("expect number or (: %s", tokens[pos].input);
     Node *node = expr();
@@ -159,11 +210,41 @@ Node *term() {
 // ASM Generator
 // ================================
 
+// push indicated address
+void gen_lval(Node *node) {
+    if (node->ty == ND_IDENT) {
+        printf("  mov rax, rbp\n");
+        printf("  sub rax, %d\n", ('z' - node->name + 1) * 8);
+        printf("  push rax\n");
+        return;
+    }
+    error("invalid value for assign");
+}
+
 void gen(Node *node) {
     if (node->ty == ND_NUM) {
         printf("  push %d\n", node->val);
         return;
     }
+
+    if (node->ty == ND_IDENT) {
+        gen_lval(node);
+        printf("  pop rax\n");
+        printf("  mov rax, [rax]\n");
+        printf("  push rax\n");
+        return;
+    }
+
+    if (node->ty == '=') {
+        gen_lval(node->lhs);
+        gen(node->rhs);
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
+        printf("  mov [rax], rdi\n");
+        printf("  push rdi\n");
+        return;
+    }
+
     gen(node->lhs);
     gen(node->rhs);
 
@@ -196,15 +277,28 @@ int main(int argc, char **argv) {
     }
 
     tokenize(argv[1]);
-    Node *node = expr();
+    program();
 
     printf(".intel_syntax noprefix\n");
     printf(".global _main\n");
     printf("_main:\n");
 
-    gen(node);
+    // prologue
+    printf("  push rbp\n");
+    printf("  mov rbp, rsp\n");
+    // allocate stack frame for 26 * 8 bytes
+    printf("  sub rsp, 208\n");
 
-    printf("  pop rax\n");
+    for (int i = 0; code[i]; i++) {
+        gen(code[i]);
+
+        // last statement is return value
+        printf("  pop rax\n");
+    }
+
+    // epilogue
+    printf("  mov rsp, rbp\n");
+    printf("  pop rbp\n");
     printf("  ret\n");
     return 0;
 }
