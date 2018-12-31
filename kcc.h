@@ -47,9 +47,7 @@ typedef struct {
     char *input; // original token (for error message)
 } Token;
 
-extern Token tokens[100];
-
-void tokenize(char *p);
+Vector *tokenize(char *p);
 
 // ================================
 // parse.c
@@ -70,12 +68,10 @@ typedef struct Node {
     char name;        // ty == ND_IDENT
 } Node;
 
-extern Node *code[100];
-
-void parse();
+Vector *parse(Vector *tokens);
 
 // ================================
 // gen.c
 // ================================
 
-void gen();
+void gen(Vector *codes);

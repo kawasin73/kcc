@@ -12,8 +12,8 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    tokenize(argv[1]);
-    parse();
-    gen();
+    Vector *tokens = tokenize(argv[1]);
+    Vector *codes = parse(tokens);
+    gen(codes);
     return 0;
 }

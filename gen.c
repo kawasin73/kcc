@@ -2,7 +2,7 @@
 #include "kcc.h"
 
 // push indicated address
-void gen_lval(Node *node) {
+static void gen_lval(Node *node) {
     if (node->ty == ND_IDENT) {
         printf("  mov rax, rbp\n");
         printf("  sub rax, %d\n", ('z' - node->name + 1) * 8);
@@ -12,7 +12,7 @@ void gen_lval(Node *node) {
     error("invalid value for assign");
 }
 
-void gen_stmt(Node *node) {
+static void gen_stmt(Node *node) {
     if (node->ty == ND_NUM) {
         printf("  push %d\n", node->val);
         return;
@@ -71,7 +71,7 @@ void gen_stmt(Node *node) {
     printf("  push rax\n");
 }
 
-void gen() {
+void gen(Vector *codes) {
     printf(".intel_syntax noprefix\n");
     printf(".global _main\n");
     printf("_main:\n");
@@ -82,8 +82,8 @@ void gen() {
     // allocate stack frame for 26 * 8 bytes
     printf("  sub rsp, 208\n");
 
-    for (int i = 0; code[i]; i++) {
-        gen_stmt(code[i]);
+    for (int i = 0; codes->data[i]; i++) {
+        gen_stmt(codes->data[i]);
 
         // last statement is return value
         printf("  pop rax\n");

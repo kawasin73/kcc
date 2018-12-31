@@ -1,10 +1,11 @@
 #include <stdlib.h>
 #include "kcc.h"
 
-int pos = 0;
-Node *code[100];
+static Vector *codes;
+static Vector *tokens;
+static int pos;
 
-Node *new_node(int ty, Node *lhs, Node *rhs) {
+static Node *new_node(int ty, Node *lhs, Node *rhs) {
     Node *node = malloc(sizeof(Node));
     node->ty = ty;
     node->lhs = lhs;
@@ -12,14 +13,14 @@ Node *new_node(int ty, Node *lhs, Node *rhs) {
     return node;
 }
 
-Node *new_node_num(int val) {
+static Node *new_node_num(int val) {
     Node *node = malloc(sizeof(Node));
     node->ty = ND_NUM;
     node->val = val;
     return node;
 }
 
-Node *new_node_ident(char name) {
+static Node *new_node_ident(char name) {
     Node *node = malloc(sizeof(Node));
     node->ty = ND_IDENT;
     node->name = name;
@@ -27,30 +28,38 @@ Node *new_node_ident(char name) {
 }
 
 // returns true (1) or false (0)
-int consume(int c) {
-    if (tokens[pos].ty != c) {
+static int consume(int c) {
+    Token *t = tokens->data[pos];
+    if (t->ty != c) {
         return 0;
     }
     pos++;
     return 1;
 }
 
-Node *assign();
+static void expect(int ty) {
+    Token *t = tokens->data[pos++];
+    if (t->ty != ty) {
+        error("expected %c", ty);
+    }
+}
 
-Node *primary() {
-    if (tokens[pos].ty == TK_NUM)
-        return new_node_num(tokens[pos++].val);
-    if (tokens[pos].ty == TK_IDENT)
-        return new_node_ident(*tokens[pos++].input);
-    if (!consume('('))
-        error("expect number or (: %s", tokens[pos].input);
+static Node *assign();
+
+static Node *primary() {
+    Token *t = tokens->data[pos++];
+    if (t->ty == TK_NUM)
+        return new_node_num(t->val);
+    if (t->ty == TK_IDENT)
+        return new_node_ident(*t->input);
+    if (t->ty != '(')
+        error("expect number or (: %s", t->input);
     Node *node = assign();
-    if (!consume(')'))
-        error("expect ): %s", tokens[pos].input);
+    expect(')');
     return node;
 }
 
-Node *mul() {
+static Node *mul() {
     Node *lhs = primary();
     if (consume('*')) {
         return new_node('*', lhs, mul());
@@ -61,7 +70,7 @@ Node *mul() {
     return lhs;
 }
 
-Node *add() {
+static Node *add() {
     Node *lhs = mul();
     if (consume('+')) {
         return new_node('+', lhs, add());
@@ -72,7 +81,7 @@ Node *add() {
     return lhs;
 }
 
-Node *equality() {
+static Node *equality() {
     Node *lhs = add();
     if (consume(TK_EQ)) {
         return new_node(ND_EQ, lhs, add());
@@ -83,7 +92,7 @@ Node *equality() {
     return lhs;
 }
 
-Node *assign() {
+static Node *assign() {
     Node *lhs = equality();
     if (consume('=')) {
         return new_node('=', lhs, assign());
@@ -91,18 +100,22 @@ Node *assign() {
     return lhs;
 }
 
-Node *stmt() {
+static Node *stmt() {
     Node *node = assign();
     if (!consume(';')) {
-        error("expect ;: %s\n", tokens[pos].input);
+        Token *t = tokens->data[pos];
+        error("expect ;: %s\n", t->input);
     }
     return node;
 }
 
-void parse() {
-    int cur = 0;
-    while (tokens[pos].ty != TK_EOF) {
-        code[cur++] = stmt();
+Vector *parse(Vector *_tokens) {
+    tokens = _tokens;
+    codes = new_vector();
+    pos = 0;
+    for (Token *t = tokens->data[pos]; t->ty != TK_EOF; t = tokens->data[pos]) {
+        vec_push(codes, stmt());
     }
-    code[cur] = NULL;
+    vec_push(codes, NULL);
+    return codes;
 }

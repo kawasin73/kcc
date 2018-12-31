@@ -3,11 +3,19 @@
 #include <string.h>
 #include "kcc.h"
 
-Token tokens[100];
+static Vector *tokens;
+
+static Token *add_token(int ty, char *intput) {
+    Token *token = malloc(sizeof(Token));
+    token->ty = ty;
+    token->input = intput;
+    vec_push(tokens, token);
+    return token;
+}
 
 // parse p to tokens
-void tokenize(char *p) {
-    int i = 0;
+Vector *tokenize(char *p) {
+    tokens = new_vector();
     while (*p) {
         // skip whitespace
         if (isspace(*p)) {
@@ -16,48 +24,37 @@ void tokenize(char *p) {
         }
 
         if ('a' <= *p && *p <= 'z') {
-            tokens[i].ty = TK_IDENT;
-            tokens[i].input = p;
-            i++;
-            p++;
+            add_token(TK_IDENT, p++);
             continue;
         }
 
         if (!strncmp(p, "==", 2)) {
-            tokens[i].ty = TK_EQ;
-            tokens[i].input = p;
-            i++;
+            add_token(TK_EQ, p);
             p+=2;
             continue;
         }
 
         if (!strncmp(p, "!=", 2)) {
-            tokens[i].ty = TK_NE;
-            tokens[i].input = p;
-            i++;
+            add_token(TK_NE, p);
             p+=2;
             continue;
         }
 
         if (strchr("+-*/()=;", *p)) {
-            tokens[i].ty = *p;
-            tokens[i].input = p;
-            i++;
+            add_token(*p, p);
             p++;
             continue;
         }
 
         if (isdigit(*p)) {
-            tokens[i].ty = TK_NUM;
-            tokens[i].input = p;
-            tokens[i].val = strtol(p, &p, 10);
-            i++;
+            Token *token = add_token(TK_NUM, p);
+            token->val = strtol(p, &p, 10);
             continue;
         }
 
         error("can not tokenize: %s\n", p);
     }
 
-    tokens[i].ty = TK_EOF;
-    tokens[i].input = p;
+    add_token(TK_EOF, p);
+    return tokens;
 }
