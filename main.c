@@ -114,7 +114,6 @@ typedef struct Node {
 } Node;
 
 Node *code[100];
-int cur = 0;
 
 Node *new_node(int ty, Node *lhs, Node *rhs) {
     Node *node = malloc(sizeof(Node));
@@ -147,45 +146,52 @@ int consume(int c) {
     return 1;
 }
 
-// Parser Structure
-//
-// program: assign program2
-// program2: none | assign program2
-// assign: equality assign2 ";"
-// assign2: none | "=" equality assign2
-// equality: expr
-// equality: expr "==" expr
-// equality: expr "!=" expr
-// expr: mul
-// expr: mul "+" expr
-// expr: mul "-" expr
-// mul: term
-// mul: term "*" mul
-// mul: term "/" mul
-// term: number | ident
-// term: "(" equality ")"
-// number: digit | digit number
-// digit: "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
-// ident: "a" ~ "z"
-
 Node *assign();
-Node *equality();
-Node *expr();
-Node *mul();
-Node *term();
 
-
-void program() {
+Node *primary() {
+    if (tokens[pos].ty == TK_NUM)
+        return new_node_num(tokens[pos++].val);
+    if (tokens[pos].ty == TK_IDENT)
+        return new_node_ident(*tokens[pos++].input);
+    if (!consume('('))
+        error("expect number or (: %s", tokens[pos].input);
     Node *node = assign();
-    if (!consume(';')) {
-        error("expect ;: %s\n", tokens[pos].input);
+    if (!consume(')'))
+        error("expect ): %s", tokens[pos].input);
+    return node;
+}
+
+Node *mul() {
+    Node *lhs = primary();
+    if (consume('*')) {
+        return new_node('*', lhs, mul());
     }
-    code[cur] = node;
-    cur++;
-    if (tokens[pos].ty != TK_EOF) {
-        program();
+    if (consume('/')) {
+        return new_node('/', lhs, mul());
     }
-    code[cur] = NULL;
+    return lhs;
+}
+
+Node *add() {
+    Node *lhs = mul();
+    if (consume('+')) {
+        return new_node('+', lhs, add());
+    }
+    if (consume('-')) {
+        return new_node('-', lhs, add());
+    }
+    return lhs;
+}
+
+Node *equality() {
+    Node *lhs = add();
+    if (consume(TK_EQ)) {
+        return new_node(ND_EQ, lhs, add());
+    }
+    if (consume(TK_NE)) {
+        return new_node(ND_NE, lhs, add());
+    }
+    return lhs;
 }
 
 Node *assign() {
@@ -196,50 +202,20 @@ Node *assign() {
     return lhs;
 }
 
-Node *equality() {
-    Node *lhs = expr();
-    if (consume(TK_EQ)) {
-        return new_node(ND_EQ, lhs, expr());
+Node *stmt() {
+    Node *node = assign();
+    if (!consume(';')) {
+        error("expect ;: %s\n", tokens[pos].input);
     }
-    if (consume(TK_NE)) {
-        return new_node(ND_NE, lhs, expr());
-    }
-    return lhs;
-}
-
-Node *expr() {
-    Node *lhs = mul();
-    if (consume('+')) {
-        return new_node('+', lhs, expr());
-    }
-    if (consume('-')) {
-        return new_node('-', lhs, expr());
-    }
-    return lhs;
-}
-
-Node *mul() {
-    Node *lhs = term();
-    if (consume('*')) {
-        return new_node('*', lhs, mul());
-    }
-    if (consume('/')) {
-        return new_node('/', lhs, mul());
-    }
-    return lhs;
-}
-
-Node *term() {
-    if (tokens[pos].ty == TK_NUM)
-        return new_node_num(tokens[pos++].val);
-    if (tokens[pos].ty == TK_IDENT)
-        return new_node_ident(*tokens[pos++].input);
-    if (!consume('('))
-        error("expect number or (: %s", tokens[pos].input);
-    Node *node = equality();
-    if (!consume(')'))
-        error("expect ): %s", tokens[pos].input);
     return node;
+}
+
+void parse() {
+    int cur = 0;
+    while (tokens[pos].ty != TK_EOF) {
+        code[cur++] = stmt();
+    }
+    code[cur] = NULL;
 }
 
 // ================================
@@ -323,7 +299,7 @@ int main(int argc, char **argv) {
     }
 
     tokenize(argv[1]);
-    program();
+    parse();
 
     printf(".intel_syntax noprefix\n");
     printf(".global _main\n");
