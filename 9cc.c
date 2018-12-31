@@ -97,6 +97,15 @@ Node *new_node_num(int val) {
     return node;
 }
 
+// returns true (1) or false (0)
+int consume(int c) {
+    if (tokens[pos].ty != c) {
+        return 0;
+    }
+    pos++;
+    return 1;
+}
+
 // Parser Structure
 //
 // expr: mul
@@ -115,12 +124,10 @@ Node *term();
 
 Node *expr() {
     Node *lhs = mul();
-    if (tokens[pos].ty == '+') {
-        pos++;
+    if (consume('+')) {
         return new_node('+', lhs, expr());
     }
-    if (tokens[pos].ty == '-') {
-        pos++;
+    if (consume('-')) {
         return new_node('-', lhs, expr());
     }
     return lhs;
@@ -128,12 +135,10 @@ Node *expr() {
 
 Node *mul() {
     Node *lhs = term();
-    if (tokens[pos].ty == '*') {
-        pos++;
+    if (consume('*')) {
         return new_node('*', lhs, mul());
     }
-    if (tokens[pos].ty == '/') {
-        pos++;
+    if (consume('/')) {
         return new_node('/', lhs, mul());
     }
     return lhs;
@@ -142,13 +147,11 @@ Node *mul() {
 Node *term() {
     if (tokens[pos].ty == TK_NUM)
         return new_node_num(tokens[pos++].val);
-    if (tokens[pos].ty != '(')
+    if (!consume('('))
         error("expect number or (: %s", tokens[pos].input);
-    pos++;
     Node *node = expr();
-    if (tokens[pos].ty != ')')
+    if (!consume(')'))
         error("expect ): %s", tokens[pos].input);
-    pos++;
     return node;
 }
 
