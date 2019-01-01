@@ -21,6 +21,10 @@ static Token *next() {
     return tokens->data[pos++];
 }
 
+static Token *peek() {
+    return tokens->data[pos];
+}
+
 // returns true (1) or false (0)
 static int consume(int c) {
     Token *t = tokens->data[pos];
@@ -119,8 +123,12 @@ static Node *assign() {
 }
 
 static Node *stmt() {
-    if (consume(TK_IF)) {
-        Node *node = new_node();
+    Token *t = peek();
+    Node *node;
+    switch (t->ty) {
+    case TK_IF:
+        pos++;
+        node = new_node();
         node->ty = ND_IF;
         expect('(');
         node->cond = assign();
@@ -130,20 +138,20 @@ static Node *stmt() {
             node->els = stmt();
         }
         return node;
-    }
-    if (consume(TK_RETURN)) {
-        Node *node = new_node();
+    case TK_RETURN:
+        pos++;
+        node = new_node();
         node->ty = ND_RETURN;
         node->expr = assign();
         expect(';');
         return node;
-    }
-    if (consume(TK_INT)) {
+    case TK_INT:
+        pos++;
         Token *t = next();
         if (t->ty != TK_IDENT) {
             error("not define variable: %s", t->input);
         }
-        Node *node = new_node();
+        node = new_node();
         node->ty = ND_VARDEF;
         node->name = t->name;
         if (consume('=')) {
@@ -151,10 +159,15 @@ static Node *stmt() {
         }
         expect(';');
         return node;
+    case '{':
+        pos++;
+        node = compound_stmt();
+        return node;
+    default:
+        node = assign();
+        expect(';');
+        return node;
     }
-    Node *node = assign();
-    expect(';');
-    return node;
 }
 
 static Node *compound_stmt() {
