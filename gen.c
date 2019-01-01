@@ -42,7 +42,11 @@ static void gen_stmt(IR *ir) {
         for (int i = ir->val-1; i >= 0; i--) {
             printf("  pop %s\n", regargs[i]);
         }
+        printf("  push rbp\n");
+        printf("  push rsp\n");
         printf("  call _%s\n", ir->name);
+        printf("  pop rsp\n");
+        printf("  pop rbp\n");
         printf("  push rax\n");
         return;
     }

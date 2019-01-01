@@ -45,5 +45,6 @@ try 3 "main(){ret1()+ret2();}"
 try 3 "main(){plus(1,2);}"
 try 12 "main(){plus(plus(1,2),3*(1+2));}"
 try 1 "main(){tmp(); 1;}tmp(){}"
+try 10 "main(){a=10;tmp(); tmp(); a;}tmp(){a=1;}"
 
 echo OK
