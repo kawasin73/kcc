@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "kcc.h"
 
+static char *regargs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+
 static void gen_stmt(IR *ir) {
     switch (ir->ty) {
     case IR_PUSH_IMM:
@@ -37,6 +39,9 @@ static void gen_stmt(IR *ir) {
         printf("  jmp .L%d\n", ir->val);
         return;
     case IR_CALL:
+        for (int i = ir->val-1; i >= 0; i--) {
+            printf("  pop %s\n", regargs[i]);
+        }
         printf("  call _%s\n", ir->name);
         printf("  push rax\n");
         return;

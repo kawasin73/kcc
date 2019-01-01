@@ -56,9 +56,17 @@ static Node *term() {
             node->ty = ND_IDENT;
             return node;
         }
-        expect(')');
         node->ty = ND_CALL;
-        return node;
+        node->args = new_vector();
+        if (consume(')'))
+            return node;
+        for (int i = 0; i < 6; i++) {
+            vec_push(node->args, assign());
+            if (consume(')'))
+                return node;
+            expect(',');
+        }
+        error("too many argument: %s", t->input);
     }
     error("expect number or (: %s", t->input);
     return node;

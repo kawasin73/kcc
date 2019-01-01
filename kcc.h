@@ -73,7 +73,8 @@ typedef struct Node {
     struct Node *lhs;
     struct Node *rhs;
     int val;          // ty == ND_NUM
-    char *name;       // ty == ND_IDENT
+    char *name;       // ty == ND_IDENT, ND_CALL
+    Vector *args;     // ty == ND_CALL
 
     // "if" ( cond ) then "else" els
     struct Node *cond;

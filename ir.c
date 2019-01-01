@@ -6,24 +6,17 @@ static int varsiz;
 static int label;
 static Map *vars;
 
-static void add_ir(int ty) {
+static IR *add_ir(int ty) {
     IR *ir = malloc(sizeof(IR));
     ir->ty = ty;
     vec_push(codes, ir);
+    return ir;
 }
 
-static void add_ir_val(int ty, int val) {
-    IR *ir = malloc(sizeof(IR));
-    ir->ty = ty;
+static IR *add_ir_val(int ty, int val) {
+    IR *ir = add_ir(ty);
     ir->val = val;
-    vec_push(codes, ir);
-}
-
-static void add_ir_name(int ty, char *name) {
-    IR *ir = malloc(sizeof(IR));
-    ir->ty = ty;
-    ir->name = name;
-    vec_push(codes, ir);
+    return ir;
 }
 
 // push indicated address
@@ -51,7 +44,11 @@ static void gen_expr(Node *node) {
         add_ir(IR_LOAD_VAL);
         return;
     case ND_CALL:
-        add_ir_name(IR_CALL, node->name);
+        for (int i = 0; i < node->args->len; i++) {
+            gen_expr(node->args->data[i]);
+        }
+        IR *ir = add_ir_val(IR_CALL, node->args->len);
+        ir->name = node->name;
         return;
     case '=':
         gen_lval(node->lhs);
