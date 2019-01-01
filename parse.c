@@ -149,7 +149,6 @@ static Node *function() {
     while (!consume('}')) {
         vec_push(node->body, stmt());
     }
-    vec_push(node->body, NULL);
     return node;
 }
 
@@ -160,6 +159,5 @@ Vector *parse(Vector *_tokens) {
     for (Token *t = tokens->data[pos]; t->ty != TK_EOF; t = tokens->data[pos]) {
         vec_push(codes, function());
     }
-    vec_push(codes, NULL);
     return codes;
 }

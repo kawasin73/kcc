@@ -89,7 +89,7 @@ static void gen_func(Function *func) {
     // allocate stack frame for 26 * 8 bytes
     printf("  sub rsp, %d\n", func->varsiz);
 
-    for (int i = 0; func->codes->data[i]; i++) {
+    for (int i = 0; i < func->codes->len; i++) {
         gen_stmt(func->codes->data[i]);
     }
 
@@ -103,7 +103,7 @@ void gen(Program *program) {
     printf(".intel_syntax noprefix\n");
     printf(".global _main\n");
 
-    for (int i = 0; program->funcs->data[i]; i++) {
+    for (int i = 0; i < program->funcs->len; i++) {
         gen_func(program->funcs->data[i]);
     }
 }

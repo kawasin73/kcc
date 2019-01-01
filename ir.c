@@ -110,10 +110,9 @@ Function *gen_func(Node *node) {
     codes = new_vector();
     vars = new_map();
     varsiz = 0;
-    for (int i = 0; node->body->data[i]; i++) {
+    for (int i = 0; i < node->body->len; i++) {
         gen_stmt(node->body->data[i]);
     }
-    vec_push(codes, NULL);
     func->codes = codes;
     func->varsiz = varsiz;
     // TODO: free vars map or reuse
@@ -123,9 +122,8 @@ Function *gen_func(Node *node) {
 Program *gen_ir(Vector *nodes) {
     Program *program = malloc(sizeof(Program));
     program->funcs = new_vector();
-    for (int i = 0; nodes->data[i]; i++) {
+    for (int i = 0; i < nodes->len; i++) {
         vec_push(program->funcs, gen_func(nodes->data[i]));
     }
-    vec_push(program->funcs, NULL);
     return program;
 }
