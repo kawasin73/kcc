@@ -25,6 +25,14 @@ static void gen_stmt(IR *ir) {
         printf("  mov [rax], rdi\n");
         printf("  push rdi\n");
         return;
+    case IR_LABEL:
+        printf(".L%d:\n", ir->val);
+        return;
+    case IR_UNLESS:
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
+        printf("  je .L%d\n", ir->val);
+        return;
     }
 
     printf("  pop rdi\n");

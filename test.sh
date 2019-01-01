@@ -31,5 +31,9 @@ try 1 "10==10;"
 try 1 "10!=5;"
 try 1 "a=10;a==10;"
 try 69 "abc=3;_23=23;abc*_23;"
+try 5 "a=10;b=0;if(a==10)b=5;b;"
+try 5 "a=0;if(a=10)a=5;a;"
+try 0 "a=0;if(2*(1-1))a=5;a;"
+try 1 "if0=1;if0;"
 
 echo OK

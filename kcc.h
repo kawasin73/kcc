@@ -39,6 +39,7 @@ enum {
     TK_IDENT,
     TK_EQ,
     TK_NE,
+    TK_IF,
     TK_EOF,
 };
 
@@ -60,6 +61,7 @@ enum {
     ND_IDENT,
     ND_EQ,
     ND_NE,
+    ND_IF,
 };
 
 typedef struct Node {
@@ -84,6 +86,8 @@ enum {
     IR_ASSIGN,
     IR_EQ,
     IR_NE,
+    IR_LABEL,
+    IR_UNLESS,
 };
 
 typedef struct {

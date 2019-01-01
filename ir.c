@@ -3,6 +3,7 @@
 
 static Vector *codes;
 static int varsiz;
+static int label;
 static Map *vars;
 
 static void add_ir(int ty) {
@@ -33,27 +34,24 @@ static void gen_lval(Node *node) {
     error("invalid value for assign");
 }
 
-static void gen_stmt(Node *node) {
-    if (node->ty == ND_NUM) {
+static void gen_expr(Node *node) {
+    switch (node->ty) {
+    case ND_NUM:
         add_ir_val(IR_PUSH_IMM, node->val);
         return;
-    }
-
-    if (node->ty == ND_IDENT) {
+    case ND_IDENT:
         gen_lval(node);
         add_ir(IR_LOAD_VAL);
         return;
-    }
-
-    if (node->ty == '=') {
+    case '=':
         gen_lval(node->lhs);
-        gen_stmt(node->rhs);
+        gen_expr(node->rhs);
         add_ir(IR_ASSIGN);
         return;
     }
 
-    gen_stmt(node->lhs);
-    gen_stmt(node->rhs);
+    gen_expr(node->lhs);
+    gen_expr(node->rhs);
 
     switch (node->ty) {
     case '+':
@@ -68,7 +66,25 @@ static void gen_stmt(Node *node) {
     case ND_NE:
         add_ir(IR_NE);
         break;
+    default:
+        error("unexpected ast node %d", node->ty);
     }
+}
+
+static void gen_stmt(Node *node) {
+    switch (node->ty) {
+    case ND_IF:
+        gen_expr(node->lhs);
+        add_ir_val(IR_UNLESS, label);
+        gen_stmt(node->rhs);
+        add_ir_val(IR_LABEL, label);
+        label++;
+        return;
+    default:
+        gen_expr(node);
+    }
+    // last statement is return value
+    add_ir(IR_POP);
 }
 
 Program *gen_ir(Vector *nodes) {
@@ -77,9 +93,6 @@ Program *gen_ir(Vector *nodes) {
 
     for (int i = 0; nodes->data[i]; i++) {
         gen_stmt(nodes->data[i]);
-
-        // last statement is return value
-        add_ir(IR_POP);
     }
     vec_push(codes, NULL);
 

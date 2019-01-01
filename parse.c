@@ -101,6 +101,13 @@ static Node *assign() {
 }
 
 static Node *stmt() {
+    if (consume(TK_IF)) {
+        expect('(');
+        Node *cond = assign();
+        expect(')');
+        Node *body = stmt();
+        return new_node(ND_IF, cond, body);
+    }
     Node *node = assign();
     if (!consume(';')) {
         Token *t = tokens->data[pos];

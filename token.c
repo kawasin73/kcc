@@ -45,8 +45,16 @@ Vector *tokenize(char *p) {
             while (isalpha(p[len]) || p[len] == '_' || isdigit(p[len])) {
                 len++;
             }
+
+            char *name = strndup(p, len);
+            if (strcmp(name, "if") == 0) {
+                add_token(TK_IF, p);
+                p+=len;
+                continue;
+            }
+
             Token *t =add_token(TK_IDENT, p);
-            t->name = strndup(p, len);
+            t->name = name;
             p+=len;
             continue;
         }
