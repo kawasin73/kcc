@@ -23,11 +23,11 @@ static void add_ir_val(int ty, int val) {
 static void gen_lval(Node *node) {
     if (node->ty == ND_IDENT) {
         if (!map_exists(vars, node->name)) {
-            map_put(vars, node->name, (void *)varsiz);
+            map_puti(vars, node->name, varsiz);
             varsiz += 8;
         }
 
-        int offset = (int)map_get(vars, node->name);
+        int offset = map_geti(vars, node->name);
         add_ir_val(IR_PUSH_VAR_PTR, offset);
         return;
     }

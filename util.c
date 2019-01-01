@@ -32,6 +32,14 @@ void map_put(Map *map, char *key, void *val) {
     vec_push(map->vals, val);
 }
 
+void map_puti(Map *map, char *key, int val) {
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wint-conversion"
+    #pragma GCC diagnostic ignored "-Wint-to-void-pointer-cast"
+    map_put(map, key, (void *)val);
+    #pragma GCC diagnostic pop
+}
+
 int map_exists(Map *map, char *key) {
     for (int i = 0; i < map->keys->len; i++) {
         if (strcmp(map->keys->data[i], key) == 0)
@@ -47,6 +55,10 @@ void *map_get(Map *map, char *key) {
         }
     }
     return NULL;
+}
+
+int map_geti(Map *map, char *key) {
+    return (int)map_get(map, key);
 }
 
 void error(char *fmt, ...) {

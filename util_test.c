@@ -41,6 +41,9 @@ void test_map() {
 
     map_put(map, "foo", (void *)6);
     expect(__LINE__, 6, (int)map_get(map, "foo"));
+
+    map_puti(map, "baz", 8);
+    expect(__LINE__, 8, map_geti(map, "baz"));
 }
 
 void run_test() {
