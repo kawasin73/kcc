@@ -95,7 +95,14 @@ static void gen_func(Function *func) {
     // prologue
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
-    // allocate stack frame for 26 * 8 bytes
+    // set arguments from register to stack
+    for (int i = 0; i < func->args; i++) {
+        printf("  mov rax, rbp\n");
+        printf("  sub rax, %d\n", i*8);
+        printf("  mov [rax], %s\n", regargs[i]);
+        printf("  sub rax, %d\n", 8);
+    }
+    // allocate stack frame
     printf("  sub rsp, %d\n", func->varsiz);
 
     for (int i = 0; i < func->codes->len; i++) {

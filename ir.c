@@ -111,9 +111,14 @@ Function *gen_func(Node *node) {
         error("toplevel must be function. but get %d", node->ty);
     Function *func = malloc(sizeof(Function));
     func->name = node->name;
+    func->args = node->args->len;
     codes = new_vector();
     vars = new_map();
     varsiz = 0;
+    for (int i = 0; i < node->args->len; i++) {
+        map_puti(vars, node->args->data[i], varsiz);
+        varsiz += 8;
+    }
     for (int i = 0; i < node->body->len; i++) {
         gen_stmt(node->body->data[i]);
     }

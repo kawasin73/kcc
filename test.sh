@@ -48,5 +48,8 @@ try 1 "main(){tmp(); 1;}tmp(){}"
 try 10 "main(){a=10;tmp(); tmp(); a;}tmp(){a=1;}"
 try 11 "main(){a=10;b=a+tmp();return b;}tmp(){return 1;}"
 try 1 "main(){return tmp();}tmp(){if(1)return 1;else return 2;}"
+try 1 "main(){return sum(1);}sum(a){return a;}"
+try 9 "main(){return sum(2,3,4);}sum(a,b,c){return a+b+c;}"
+try 14 "main(){return sum(2,3,4);}sum(a,b,c){d=5;return a+b+c+d;}"
 
 echo OK

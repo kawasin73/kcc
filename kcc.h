@@ -127,6 +127,7 @@ typedef struct {
 typedef struct {
     char *name;
     Vector *codes;
+    int args;
     int varsiz;
 } Function;
 

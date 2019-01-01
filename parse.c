@@ -141,6 +141,27 @@ static Node *stmt() {
     return node;
 }
 
+static Vector *argsdef() {
+    Vector *args = new_vector();
+    if (consume(')'))
+        return args;
+    Token *t = tokens->data[pos++];
+    if (t->ty != TK_IDENT)
+        error("function argument must be literal: %s", t->input);
+    vec_push(args, t->name);
+    for (int i = 0; i < 6; i++) {
+        if (consume(')'))
+            return args;
+        expect(',');
+        t = tokens->data[pos++];
+        if (t->ty != TK_IDENT)
+            error("function argument must be literal: %s", t->input);
+        vec_push(args, t->name);
+    }
+    error("too many argument: %s", t->input);
+    return NULL;
+}
+
 static Node *function() {
     Token *t = tokens->data[pos++];
     if (t->ty != TK_IDENT)
@@ -148,11 +169,10 @@ static Node *function() {
     Node *node = new_node();
     node->ty = ND_FUNC;
     node->name = t->name;
-    node->body = new_vector();
     expect('(');
-    // TODO: multi args
-    expect(')');
+    node->args = argsdef();
     expect('{');
+    node->body = new_vector();
     while (!consume('}')) {
         vec_push(node->body, stmt());
     }
