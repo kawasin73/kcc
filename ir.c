@@ -19,19 +19,31 @@ static IR *add_ir_val(int ty, int val) {
     return ir;
 }
 
+static void define_var(char *name) {
+    if (map_exists(vars, name)) {
+        error("define variable twice: %s", name);
+    }
+    map_puti(vars, name, varsiz);
+    varsiz += 8;
+    return;
+}
+
 // push indicated address
 static void gen_lval(Node *node) {
-    if (node->ty == ND_IDENT) {
+    switch (node->ty) {
+    case ND_VARDEF:
+        define_var(node->name);
+    case ND_IDENT:
         if (!map_exists(vars, node->name)) {
-            map_puti(vars, node->name, varsiz);
-            varsiz += 8;
+            error("undefined variable: %s", node->name);
         }
 
         int offset = map_geti(vars, node->name);
         add_ir_val(IR_PUSH_VAR_PTR, offset);
         return;
+    default:
+        error("invalid value for assign type %c (%d)", node->ty, node->ty);
     }
-    error("invalid value for assign");
 }
 
 static void gen_expr(Node *node) {
@@ -98,6 +110,9 @@ static void gen_stmt(Node *node) {
         add_ir_val(IR_LABEL, x);
         gen_stmt(node->els);
         add_ir_val(IR_LABEL, y);
+        return;
+    case ND_VARDEF:
+        define_var(node->name);
         return;
     default:
         gen_expr(node);

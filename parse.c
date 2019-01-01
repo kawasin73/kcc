@@ -17,6 +17,10 @@ static Node *new_binop(int ty, Node *lhs, Node *rhs) {
     return node;
 }
 
+static Token *next() {
+    return tokens->data[pos++];
+}
+
 // returns true (1) or false (0)
 static int consume(int c) {
     Token *t = tokens->data[pos];
@@ -28,16 +32,16 @@ static int consume(int c) {
 }
 
 static void expect(int ty) {
-    Token *t = tokens->data[pos++];
+    Token *t = next();
     if (t->ty != ty) {
-        error("expected %c", ty);
+        error("expected %c (%d)", ty, ty);
     }
 }
 
 static Node *assign();
 
 static Node *term() {
-    Token *t = tokens->data[pos++];
+    Token *t = next();
     Node *node;
     if (t->ty == '(') {
         node = assign();
@@ -68,7 +72,7 @@ static Node *term() {
         }
         error("too many argument: %s", t->input);
     }
-    error("expect number or (: %s", t->input);
+    error("expect number or (, defined variable: %s", t->input);
     return node;
 }
 
@@ -133,11 +137,22 @@ static Node *stmt() {
         expect(';');
         return node;
     }
-    Node *node = assign();
-    if (!consume(';')) {
-        Token *t = tokens->data[pos];
-        error("expect ;: %s\n", t->input);
+    if (consume(TK_INT)) {
+        Token *t = next();
+        if (t->ty != TK_IDENT) {
+            error("not define variable: %s", t->input);
+        }
+        Node *node = new_node();
+        node->ty = ND_VARDEF;
+        node->name = t->name;
+        if (consume('=')) {
+            node = new_binop('=', node, assign());
+        }
+        expect(';');
+        return node;
     }
+    Node *node = assign();
+    expect(';');
     return node;
 }
 
@@ -145,7 +160,8 @@ static Vector *argsdef() {
     Vector *args = new_vector();
     if (consume(')'))
         return args;
-    Token *t = tokens->data[pos++];
+    expect(TK_INT);
+    Token *t = next();
     if (t->ty != TK_IDENT)
         error("function argument must be literal: %s", t->input);
     vec_push(args, t->name);
@@ -153,7 +169,8 @@ static Vector *argsdef() {
         if (consume(')'))
             return args;
         expect(',');
-        t = tokens->data[pos++];
+        expect(TK_INT);
+        t = next();
         if (t->ty != TK_IDENT)
             error("function argument must be literal: %s", t->input);
         vec_push(args, t->name);
@@ -163,7 +180,8 @@ static Vector *argsdef() {
 }
 
 static Node *function() {
-    Token *t = tokens->data[pos++];
+    expect(TK_INT);
+    Token *t = next();
     if (t->ty != TK_IDENT)
         error("must be function definition: %s", t->input);
     Node *node = new_node();

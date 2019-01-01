@@ -39,8 +39,9 @@ void run_test();
 enum {
     TK_NUM = 256, // Number literal
     TK_IDENT,     // Identifier
-    TK_EQ,        // equal
-    TK_NE,        // not equal
+    TK_EQ,        // "=="
+    TK_NE,        // "!="
+    TK_INT,       // "int"
     TK_IF,        // "if"
     TK_ELSE,      // "else"
     TK_RETURN,    // "return"
@@ -62,6 +63,7 @@ Vector *tokenize(char *p);
 
 enum {
     ND_NUM = 256, // Number literal
+    ND_VARDEF,    // Define variable
     ND_IDENT,     // Identifier
     ND_EQ,        // equal
     ND_NE,        // not equal
