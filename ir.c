@@ -1,10 +1,22 @@
 #include <stdlib.h>
 #include "kcc.h"
 
+typedef struct Env {
+    Map *vars;
+    struct Env *prev;
+} Env;
+
 static Vector *codes;
 static int varsiz;
 static int label;
-static Map *vars;
+static Env *env;
+
+static Env *new_env(Env *prev) {
+    Env *env = malloc(sizeof(Env));
+    env->vars = new_map();
+    env->prev = prev;
+    return env;
+}
 
 static IR *add_ir(int ty) {
     IR *ir = malloc(sizeof(IR));
@@ -20,25 +32,33 @@ static IR *add_ir_val(int ty, int val) {
 }
 
 static void define_var(char *name) {
-    if (map_exists(vars, name)) {
+    if (map_exists(env->vars, name)) {
+        // TODO: analyze parse step
         error("define variable twice: %s", name);
     }
-    map_puti(vars, name, varsiz);
+    map_puti(env->vars, name, varsiz);
     varsiz += 8;
     return;
 }
 
+static int find_var_offset(char *name) {
+    for (Env *e = env; e; e = e->prev) {
+        if (map_exists(e->vars, name))
+            return map_geti(e->vars, name);
+    }
+    return -1;
+}
+
 // push indicated address
 static void gen_lval(Node *node) {
+    int offset;
     switch (node->ty) {
     case ND_VARDEF:
         define_var(node->name);
     case ND_IDENT:
-        if (!map_exists(vars, node->name)) {
+        offset = find_var_offset(node->name);
+        if (offset == -1)
             error("undefined variable: %s", node->name);
-        }
-
-        int offset = map_geti(vars, node->name);
         add_ir_val(IR_PUSH_VAR_PTR, offset);
         return;
     default:
@@ -115,9 +135,11 @@ static void gen_stmt(Node *node) {
         define_var(node->name);
         return;
     case ND_COMP_STMT:
+        env = new_env(env);
         for (int i = 0; i < node->stmts->len; i++) {
             gen_stmt(node->stmts->data[i]);
         }
+        env = env->prev;
         return;
     default:
         gen_expr(node);
@@ -133,24 +155,24 @@ Function *gen_func(Node *node) {
     func->name = node->name;
     func->args = node->args->len;
     codes = new_vector();
-    vars = new_map();
     varsiz = 0;
     for (int i = 0; i < node->args->len; i++) {
-        map_puti(vars, node->args->data[i], varsiz);
-        varsiz += 8;
+        define_var(node->args->data[i]);
     }
     gen_stmt(node->body);
     func->codes = codes;
     func->varsiz = varsiz;
-    // TODO: free vars map or reuse
     return func;
 }
 
 Program *gen_ir(Vector *nodes) {
+    env = new_env(NULL);
     Program *program = malloc(sizeof(Program));
     program->funcs = new_vector();
     for (int i = 0; i < nodes->len; i++) {
+        env = new_env(env);
         vec_push(program->funcs, gen_func(nodes->data[i]));
+        env = env->prev;
     }
     return program;
 }
