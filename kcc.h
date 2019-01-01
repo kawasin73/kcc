@@ -37,13 +37,13 @@ void run_test();
 
 // token type
 enum {
-    TK_NUM = 256,
-    TK_IDENT,
-    TK_EQ,
-    TK_NE,
-    TK_IF,
-    TK_ELSE,
-    TK_EOF,
+    TK_NUM = 256, // Number literal
+    TK_IDENT,     // Identifier
+    TK_EQ,        // equal
+    TK_NE,        // not equal
+    TK_IF,        // "if"
+    TK_ELSE,      // "else"
+    TK_EOF,       // end of file
 };
 
 typedef struct {
@@ -60,26 +60,36 @@ Vector *tokenize(char *p);
 // ================================
 
 enum {
-    ND_NUM = 256,
-    ND_IDENT,
-    ND_EQ,
-    ND_NE,
-    ND_IF,
-    ND_CALL,
+    ND_NUM = 256, // Number literal
+    ND_IDENT,     // Identifier
+    ND_EQ,        // equal
+    ND_NE,        // not equal
+    ND_IF,        // "if"
+    ND_CALL,      // Function call
+    ND_FUNC,      // Function definition
 };
 
 typedef struct Node {
-    int ty;
+    int ty;           // token type
     struct Node *lhs;
     struct Node *rhs;
-    int val;          // ty == ND_NUM
-    char *name;       // ty == ND_IDENT, ND_CALL
-    Vector *args;     // ty == ND_CALL
+
+    // ty == ND_NUM
+    int val;
+
+    // Function name or Identifier
+    char *name;
 
     // "if" ( cond ) then "else" els
     struct Node *cond;
     struct Node *then;
     struct Node *els;
+
+    // Function call arguments
+    Vector *args;
+
+    // Function body
+    Vector *body;
 } Node;
 
 Vector *parse(Vector *tokens);
@@ -109,8 +119,13 @@ typedef struct {
 } IR;
 
 typedef struct {
+    char *name;
     Vector *codes;
     int varsiz;
+} Function;
+
+typedef struct {
+    Vector *funcs;
 } Program;
 
 Program *gen_ir(Vector *nodes);

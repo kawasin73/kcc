@@ -81,23 +81,29 @@ static void gen_stmt(IR *ir) {
     printf("  push rax\n");
 }
 
-void gen(Program *program) {
-    printf(".intel_syntax noprefix\n");
-    printf(".global _main\n");
-    printf("_main:\n");
-
+static void gen_func(Function *func) {
+    printf("_%s:\n", func->name);
     // prologue
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
     // allocate stack frame for 26 * 8 bytes
-    printf("  sub rsp, %d\n", program->varsiz);
+    printf("  sub rsp, %d\n", func->varsiz);
 
-    for (int i = 0; program->codes->data[i]; i++) {
-        gen_stmt(program->codes->data[i]);
+    for (int i = 0; func->codes->data[i]; i++) {
+        gen_stmt(func->codes->data[i]);
     }
 
     // epilogue
     printf("  mov rsp, rbp\n");
     printf("  pop rbp\n");
     printf("  ret\n");
+}
+
+void gen(Program *program) {
+    printf(".intel_syntax noprefix\n");
+    printf(".global _main\n");
+
+    for (int i = 0; program->funcs->data[i]; i++) {
+        gen_func(program->funcs->data[i]);
+    }
 }

@@ -102,17 +102,30 @@ static void gen_stmt(Node *node) {
     add_ir(IR_POP);
 }
 
-Program *gen_ir(Vector *nodes) {
+Function *gen_func(Node *node) {
+    if (node->ty != ND_FUNC)
+        error("toplevel must be function. but get %d", node->ty);
+    Function *func = malloc(sizeof(Function));
+    func->name = node->name;
     codes = new_vector();
     vars = new_map();
-
-    for (int i = 0; nodes->data[i]; i++) {
-        gen_stmt(nodes->data[i]);
+    varsiz = 0;
+    for (int i = 0; node->body->data[i]; i++) {
+        gen_stmt(node->body->data[i]);
     }
     vec_push(codes, NULL);
+    func->codes = codes;
+    func->varsiz = varsiz;
+    // TODO: free vars map or reuse
+    return func;
+}
 
+Program *gen_ir(Vector *nodes) {
     Program *program = malloc(sizeof(Program));
-    program->codes = codes;
-    program->varsiz = varsiz;
+    program->funcs = new_vector();
+    for (int i = 0; nodes->data[i]; i++) {
+        vec_push(program->funcs, gen_func(nodes->data[i]));
+    }
+    vec_push(program->funcs, NULL);
     return program;
 }

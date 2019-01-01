@@ -134,12 +134,31 @@ static Node *stmt() {
     return node;
 }
 
+static Node *function() {
+    Token *t = tokens->data[pos++];
+    if (t->ty != TK_IDENT)
+        error("must be function definition: %s", t->input);
+    Node *node = new_node();
+    node->ty = ND_FUNC;
+    node->name = t->name;
+    node->body = new_vector();
+    expect('(');
+    // TODO: multi args
+    expect(')');
+    expect('{');
+    while (!consume('}')) {
+        vec_push(node->body, stmt());
+    }
+    vec_push(node->body, NULL);
+    return node;
+}
+
 Vector *parse(Vector *_tokens) {
     tokens = _tokens;
     codes = new_vector();
     pos = 0;
     for (Token *t = tokens->data[pos]; t->ty != TK_EOF; t = tokens->data[pos]) {
-        vec_push(codes, stmt());
+        vec_push(codes, function());
     }
     vec_push(codes, NULL);
     return codes;
