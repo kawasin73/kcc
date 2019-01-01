@@ -71,6 +71,7 @@ enum {
     ND_CALL,      // Function call
     ND_FUNC,      // Function definition
     ND_RETURN,    // "return"
+    ND_COMP_STMT  // Compound statements
 };
 
 typedef struct Node {
@@ -93,7 +94,10 @@ typedef struct Node {
     Vector *args;
 
     // Function body
-    Vector *body;
+    struct Node *body;
+
+    // Compound statements
+    Vector *stmts;
 
     // "return"
     struct Node *expr;

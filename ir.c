@@ -114,6 +114,11 @@ static void gen_stmt(Node *node) {
     case ND_VARDEF:
         define_var(node->name);
         return;
+    case ND_COMP_STMT:
+        for (int i = 0; i < node->stmts->len; i++) {
+            gen_stmt(node->stmts->data[i]);
+        }
+        return;
     default:
         gen_expr(node);
     }
@@ -134,9 +139,7 @@ Function *gen_func(Node *node) {
         map_puti(vars, node->args->data[i], varsiz);
         varsiz += 8;
     }
-    for (int i = 0; i < node->body->len; i++) {
-        gen_stmt(node->body->data[i]);
-    }
+    gen_stmt(node->body);
     func->codes = codes;
     func->varsiz = varsiz;
     // TODO: free vars map or reuse

@@ -39,6 +39,7 @@ static void expect(int ty) {
 }
 
 static Node *assign();
+static Node *compound_stmt();
 
 static Node *term() {
     Token *t = next();
@@ -156,6 +157,16 @@ static Node *stmt() {
     return node;
 }
 
+static Node *compound_stmt() {
+    Node *node = new_node();
+    node->ty = ND_COMP_STMT;
+    node->stmts = new_vector();
+    while (!consume('}')) {
+        vec_push(node->stmts, stmt());
+    }
+    return node;
+}
+
 static Vector *argsdef() {
     Vector *args = new_vector();
     if (consume(')'))
@@ -190,10 +201,7 @@ static Node *function() {
     expect('(');
     node->args = argsdef();
     expect('{');
-    node->body = new_vector();
-    while (!consume('}')) {
-        vec_push(node->body, stmt());
-    }
+    node->body = compound_stmt();
     return node;
 }
 
