@@ -20,8 +20,18 @@ static struct {
     {"==", TK_EQ}, {"!=", TK_NE},
 };
 
+static Map *keywords;
+
+static Map *keyword_map() {
+    Map *map = new_map();
+    map_puti(map, "if", TK_IF);
+    map_puti(map, "else", TK_ELSE);
+    return map;
+}
+
 // parse p to tokens
 Vector *tokenize(char *p) {
+    keywords = keyword_map();
     tokens = new_vector();
     while (*p) {
         // skip whitespace
@@ -47,8 +57,9 @@ Vector *tokenize(char *p) {
             }
 
             char *name = strndup(p, len);
-            if (strcmp(name, "if") == 0) {
-                add_token(TK_IF, p);
+            if (map_exists(keywords, name)) {
+                int ty = map_geti(keywords, name);
+                add_token(ty, p);
                 p+=len;
                 continue;
             }

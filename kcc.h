@@ -42,6 +42,7 @@ enum {
     TK_EQ,
     TK_NE,
     TK_IF,
+    TK_ELSE,
     TK_EOF,
 };
 
@@ -72,6 +73,11 @@ typedef struct Node {
     struct Node *rhs;
     int val;          // ty == ND_NUM
     char *name;       // ty == ND_IDENT
+
+    // "if" ( cond ) then "else" els
+    struct Node *cond;
+    struct Node *then;
+    struct Node *els;
 } Node;
 
 Vector *parse(Vector *tokens);
@@ -90,6 +96,7 @@ enum {
     IR_NE,
     IR_LABEL,
     IR_UNLESS,
+    IR_JMP,
 };
 
 typedef struct {

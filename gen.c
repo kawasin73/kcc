@@ -33,6 +33,9 @@ static void gen_stmt(IR *ir) {
         printf("  cmp rax, 0\n");
         printf("  je .L%d\n", ir->val);
         return;
+    case IR_JMP:
+        printf("  jmp .L%d\n", ir->val);
+        return;
     }
 
     printf("  pop rdi\n");

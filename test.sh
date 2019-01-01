@@ -35,5 +35,6 @@ try 5 "a=10;b=0;if(a==10)b=5;b;"
 try 5 "a=0;if(a=10)a=5;a;"
 try 0 "a=0;if(2*(1-1))a=5;a;"
 try 1 "if0=1;if0;"
+try 2 "a=0;if(0)a=1;else a=2;a;"
 
 echo OK

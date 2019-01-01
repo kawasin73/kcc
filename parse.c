@@ -5,24 +5,27 @@ static Vector *codes;
 static Vector *tokens;
 static int pos;
 
-static Node *new_node(int ty, Node *lhs, Node *rhs) {
+static Node *new_node(int ty) {
     Node *node = malloc(sizeof(Node));
     node->ty = ty;
+    return node;
+}
+
+static Node *new_binop(int ty, Node *lhs, Node *rhs) {
+    Node *node = new_node(ty);
     node->lhs = lhs;
     node->rhs = rhs;
     return node;
 }
 
 static Node *new_node_num(int val) {
-    Node *node = malloc(sizeof(Node));
-    node->ty = ND_NUM;
+    Node *node = new_node(ND_NUM);
     node->val = val;
     return node;
 }
 
 static Node *new_node_ident(char *name) {
-    Node *node = malloc(sizeof(Node));
-    node->ty = ND_IDENT;
+    Node *node = new_node(ND_IDENT);
     node->name = name;
     return node;
 }
@@ -62,10 +65,10 @@ static Node *primary() {
 static Node *mul() {
     Node *lhs = primary();
     if (consume('*')) {
-        return new_node('*', lhs, mul());
+        return new_binop('*', lhs, mul());
     }
     if (consume('/')) {
-        return new_node('/', lhs, mul());
+        return new_binop('/', lhs, mul());
     }
     return lhs;
 }
@@ -73,10 +76,10 @@ static Node *mul() {
 static Node *add() {
     Node *lhs = mul();
     if (consume('+')) {
-        return new_node('+', lhs, add());
+        return new_binop('+', lhs, add());
     }
     if (consume('-')) {
-        return new_node('-', lhs, add());
+        return new_binop('-', lhs, add());
     }
     return lhs;
 }
@@ -84,10 +87,10 @@ static Node *add() {
 static Node *equality() {
     Node *lhs = add();
     if (consume(TK_EQ)) {
-        return new_node(ND_EQ, lhs, add());
+        return new_binop(ND_EQ, lhs, add());
     }
     if (consume(TK_NE)) {
-        return new_node(ND_NE, lhs, add());
+        return new_binop(ND_NE, lhs, add());
     }
     return lhs;
 }
@@ -95,18 +98,22 @@ static Node *equality() {
 static Node *assign() {
     Node *lhs = equality();
     if (consume('=')) {
-        return new_node('=', lhs, assign());
+        return new_binop('=', lhs, assign());
     }
     return lhs;
 }
 
 static Node *stmt() {
     if (consume(TK_IF)) {
+        Node *node = new_node(ND_IF);
         expect('(');
-        Node *cond = assign();
+        node->cond = assign();
         expect(')');
-        Node *body = stmt();
-        return new_node(ND_IF, cond, body);
+        node->then = stmt();
+        if (consume(TK_ELSE)) {
+            node->els = stmt();
+        }
+        return node;
     }
     Node *node = assign();
     if (!consume(';')) {

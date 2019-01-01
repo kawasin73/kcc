@@ -74,11 +74,19 @@ static void gen_expr(Node *node) {
 static void gen_stmt(Node *node) {
     switch (node->ty) {
     case ND_IF:
-        gen_expr(node->lhs);
-        add_ir_val(IR_UNLESS, label);
-        gen_stmt(node->rhs);
-        add_ir_val(IR_LABEL, label);
-        label++;
+        gen_expr(node->cond);
+        int x = label++;
+        add_ir_val(IR_UNLESS, x);
+        gen_stmt(node->then);
+        if (!node->els) {
+            add_ir_val(IR_LABEL, x);
+            return;
+        }
+        int y = label++;
+        add_ir_val(IR_JMP, y);
+        add_ir_val(IR_LABEL, x);
+        gen_stmt(node->els);
+        add_ir_val(IR_LABEL, y);
         return;
     default:
         gen_expr(node);
