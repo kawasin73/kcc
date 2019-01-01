@@ -4,7 +4,7 @@ try() {
     expected="$1"
     input="$2"
     ./kcc "$input" > tmp.s
-    gcc -o tmp tmp.s
+    gcc -o tmp tmp.s tmp-ret1.o tmp-ret2.o
     ./tmp
     actual="$?"
 
@@ -15,6 +15,9 @@ try() {
         exit 1
     fi
 }
+
+echo 'int ret1() { return 1; }' | gcc -xc -c -o tmp-ret1.o -
+echo 'int ret2() { return 2; }' | gcc -xc -c -o tmp-ret2.o -
 
 try 0 "0;"
 try 42 "42;"
@@ -36,5 +39,7 @@ try 5 "a=0;if(a=10)a=5;a;"
 try 0 "a=0;if(2*(1-1))a=5;a;"
 try 1 "if0=1;if0;"
 try 2 "a=0;if(0)a=1;else a=2;a;"
+try 1 "ret1();"
+try 3 "ret1()+ret2();"
 
 echo OK

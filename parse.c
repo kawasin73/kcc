@@ -5,28 +5,15 @@ static Vector *codes;
 static Vector *tokens;
 static int pos;
 
-static Node *new_node(int ty) {
-    Node *node = malloc(sizeof(Node));
-    node->ty = ty;
-    return node;
+static Node *new_node() {
+    return malloc(sizeof(Node));
 }
 
 static Node *new_binop(int ty, Node *lhs, Node *rhs) {
-    Node *node = new_node(ty);
+    Node *node = new_node();
+    node->ty = ty;
     node->lhs = lhs;
     node->rhs = rhs;
-    return node;
-}
-
-static Node *new_node_num(int val) {
-    Node *node = new_node(ND_NUM);
-    node->val = val;
-    return node;
-}
-
-static Node *new_node_ident(char *name) {
-    Node *node = new_node(ND_IDENT);
-    node->name = name;
     return node;
 }
 
@@ -49,21 +36,36 @@ static void expect(int ty) {
 
 static Node *assign();
 
-static Node *primary() {
+static Node *term() {
     Token *t = tokens->data[pos++];
-    if (t->ty == TK_NUM)
-        return new_node_num(t->val);
-    if (t->ty == TK_IDENT)
-        return new_node_ident(t->name);
-    if (t->ty != '(')
-        error("expect number or (: %s", t->input);
-    Node *node = assign();
-    expect(')');
+    Node *node;
+    if (t->ty == '(') {
+        node = assign();
+        expect(')');
+        return node;
+    }
+    node = new_node();
+    if (t->ty == TK_NUM) {
+        node->ty = ND_NUM;
+        node->val = t->val;
+        return node;
+    }
+    if (t->ty == TK_IDENT) {
+        node->name = t->name;
+        if (!consume('(')) {
+            node->ty = ND_IDENT;
+            return node;
+        }
+        expect(')');
+        node->ty = ND_CALL;
+        return node;
+    }
+    error("expect number or (: %s", t->input);
     return node;
 }
 
 static Node *mul() {
-    Node *lhs = primary();
+    Node *lhs = term();
     if (consume('*')) {
         return new_binop('*', lhs, mul());
     }
@@ -105,7 +107,8 @@ static Node *assign() {
 
 static Node *stmt() {
     if (consume(TK_IF)) {
-        Node *node = new_node(ND_IF);
+        Node *node = new_node();
+        node->ty = ND_IF;
         expect('(');
         node->cond = assign();
         expect(')');

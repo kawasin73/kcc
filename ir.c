@@ -19,6 +19,13 @@ static void add_ir_val(int ty, int val) {
     vec_push(codes, ir);
 }
 
+static void add_ir_name(int ty, char *name) {
+    IR *ir = malloc(sizeof(IR));
+    ir->ty = ty;
+    ir->name = name;
+    vec_push(codes, ir);
+}
+
 // push indicated address
 static void gen_lval(Node *node) {
     if (node->ty == ND_IDENT) {
@@ -42,6 +49,9 @@ static void gen_expr(Node *node) {
     case ND_IDENT:
         gen_lval(node);
         add_ir(IR_LOAD_VAL);
+        return;
+    case ND_CALL:
+        add_ir_name(IR_CALL, node->name);
         return;
     case '=':
         gen_lval(node->lhs);

@@ -65,6 +65,7 @@ enum {
     ND_EQ,
     ND_NE,
     ND_IF,
+    ND_CALL,
 };
 
 typedef struct Node {
@@ -97,11 +98,13 @@ enum {
     IR_LABEL,
     IR_UNLESS,
     IR_JMP,
+    IR_CALL,
 };
 
 typedef struct {
     int ty;
     int val;
+    char *name;
 } IR;
 
 typedef struct {
