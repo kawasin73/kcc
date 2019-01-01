@@ -2,6 +2,7 @@
 #include "kcc.h"
 
 static char *regargs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+static int ret = 0;
 
 static void gen_stmt(IR *ir) {
     switch (ir->ty) {
@@ -48,6 +49,10 @@ static void gen_stmt(IR *ir) {
         printf("  pop rsp\n");
         printf("  pop rbp\n");
         printf("  push rax\n");
+        return;
+    case IR_RETURN:
+        printf("  pop rax\n");
+        printf("  jmp .Lend%d\n", ret);
         return;
     }
 
@@ -97,7 +102,9 @@ static void gen_func(Function *func) {
         gen_stmt(func->codes->data[i]);
     }
 
+    // TODO: detect "return" is not called
     // epilogue
+    printf(".Lend%d:\n", ret++);
     printf("  mov rsp, rbp\n");
     printf("  pop rbp\n");
     printf("  ret\n");

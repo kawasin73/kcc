@@ -43,6 +43,7 @@ enum {
     TK_NE,        // not equal
     TK_IF,        // "if"
     TK_ELSE,      // "else"
+    TK_RETURN,    // "return"
     TK_EOF,       // end of file
 };
 
@@ -67,6 +68,7 @@ enum {
     ND_IF,        // "if"
     ND_CALL,      // Function call
     ND_FUNC,      // Function definition
+    ND_RETURN,    // "return"
 };
 
 typedef struct Node {
@@ -90,6 +92,9 @@ typedef struct Node {
 
     // Function body
     Vector *body;
+
+    // "return"
+    struct Node *expr;
 } Node;
 
 Vector *parse(Vector *tokens);
@@ -110,6 +115,7 @@ enum {
     IR_UNLESS,
     IR_JMP,
     IR_CALL,
+    IR_RETURN,
 };
 
 typedef struct {

@@ -46,5 +46,7 @@ try 3 "main(){plus(1,2);}"
 try 12 "main(){plus(plus(1,2),3*(1+2));}"
 try 1 "main(){tmp(); 1;}tmp(){}"
 try 10 "main(){a=10;tmp(); tmp(); a;}tmp(){a=1;}"
+try 11 "main(){a=10;b=a+tmp();return b;}tmp(){return 1;}"
+try 1 "main(){return tmp();}tmp(){if(1)return 1;else return 2;}"
 
 echo OK

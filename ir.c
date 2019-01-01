@@ -50,6 +50,10 @@ static void gen_expr(Node *node) {
         IR *ir = add_ir_val(IR_CALL, node->args->len);
         ir->name = node->name;
         return;
+    case ND_RETURN:
+        gen_expr(node->expr);
+        add_ir(IR_RETURN);
+        return;
     case '=':
         gen_lval(node->lhs);
         gen_expr(node->rhs);

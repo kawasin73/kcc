@@ -126,6 +126,13 @@ static Node *stmt() {
         }
         return node;
     }
+    if (consume(TK_RETURN)) {
+        Node *node = new_node();
+        node->ty = ND_RETURN;
+        node->expr = assign();
+        expect(';');
+        return node;
+    }
     Node *node = assign();
     if (!consume(';')) {
         Token *t = tokens->data[pos];
