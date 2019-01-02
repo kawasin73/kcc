@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include "kcc.h"
 
-static Vector *codes;
 static Vector *tokens;
 static int pos;
 
@@ -296,10 +295,10 @@ static Node *toplevel() {
 
 Vector *parse(Vector *_tokens) {
     tokens = _tokens;
-    codes = new_vector();
+    Vector *nodes = new_vector();
     pos = 0;
     for (Token *t = tokens->data[pos]; t->ty != TK_EOF; t = tokens->data[pos]) {
-        vec_push(codes, toplevel());
+        vec_push(nodes, toplevel());
     }
-    return codes;
+    return nodes;
 }

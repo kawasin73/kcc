@@ -126,11 +126,11 @@ static void gen_func(Function *func) {
     printf("  ret\n");
 }
 
-void gen(Program *program) {
+void gen(Vector *globals, Vector *funcs) {
     printf(".intel_syntax noprefix\n");
     printf(".data\n");
-    for (int i = 0; i < program->globals->len; i++) {
-        Var *var = program->globals->data[i];
+    for (int i = 0; i < globals->len; i++) {
+        Var *var = globals->data[i];
         if (var->initial) {
             printf("_%s:\n", var->name);
             printf("  .quad %d\n", var->initial);
@@ -141,7 +141,7 @@ void gen(Program *program) {
     printf(".text\n");
     printf(".global _main\n");
 
-    for (int i = 0; i < program->funcs->len; i++) {
-        gen_func(program->funcs->data[i]);
+    for (int i = 0; i < funcs->len; i++) {
+        gen_func(funcs->data[i]);
     }
 }

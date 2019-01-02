@@ -103,6 +103,8 @@ typedef struct Node {
     // Function call arguments
     Vector *args;
 
+    // Function stack size
+    int varsiz;
     // Function body
     struct Node *body;
 
@@ -113,9 +115,25 @@ typedef struct Node {
     // Expression statement
     // inital value for ND_VARDEF
     struct Node *expr;
+
+    // local variable offset
+    int offset;
 } Node;
 
 Vector *parse(Vector *tokens);
+
+// ================================
+// ir.c
+// ================================
+
+typedef struct {
+    int offset;
+    char *name;
+    int initial;
+} Var;
+
+// returns global vars
+Vector *analyze(Vector *nodes);
 
 // ================================
 // ir.c
@@ -147,27 +165,16 @@ typedef struct {
 } IR;
 
 typedef struct {
-    int offset;
-    char *name;
-    int initial;
-} Var;
-
-typedef struct {
     char *name;
     Vector *codes;
     int args;
     int varsiz;
 } Function;
 
-typedef struct {
-    Vector *funcs;
-    Vector *globals;
-} Program;
-
-Program *gen_ir(Vector *nodes);
+Vector *gen_ir(Vector *nodes);
 
 // ================================
 // gen.c
 // ================================
 
-void gen(Program *program);
+void gen(Vector *globals, Vector *funcs);

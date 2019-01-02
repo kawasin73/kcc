@@ -1,22 +1,8 @@
 #include <stdlib.h>
 #include "kcc.h"
 
-typedef struct Env {
-    Map *vars;
-    struct Env *prev;
-} Env;
-
 static Vector *codes;
-static int varsiz;
 static int label;
-static Env *env;
-
-static Env *new_env(Env *prev) {
-    Env *env = malloc(sizeof(Env));
-    env->vars = new_map();
-    env->prev = prev;
-    return env;
-}
 
 static IR *add_ir(int ty) {
     IR *ir = malloc(sizeof(IR));
@@ -37,46 +23,15 @@ static IR *add_ir_name(int ty, char *name) {
     return ir;
 }
 
-static Var *define_var(char *name) {
-    if (map_exists(env->vars, name)) {
-        // TODO: analyze parse step
-        error("define variable twice: %s", name);
-    }
-    Var *var = malloc(sizeof(Var));
-    var->name = name;
-    if (env->prev) {
-        // local variable
-        var->offset = varsiz;
-        varsiz += 8;
-    } else {
-        // global variable
-        var->offset = -1;
-    }
-    map_put(env->vars, name, var);
-    return var;
-}
-
-static Var *find_var(char *name) {
-    for (Env *e = env; e; e = e->prev) {
-        if (map_exists(e->vars, name))
-            return map_get(e->vars, name);
-    }
-    return NULL;
-}
-
 // push indicated address
 static void gen_lval(Node *node) {
-    Var *var;
     switch (node->ty) {
     case ND_VARDEF:
     case ND_IDENT:
-        var = find_var(node->name);
-        if (!var)
-            error("undefined variable: %s", node->name);
-        if (var->offset == -1)
-            add_ir_name(IR_LABEL_ADDR, var->name);
+        if (node->offset == -1)
+            add_ir_name(IR_LABEL_ADDR, node->name);
         else
-            add_ir_val(IR_PUSH_VAR_PTR, var->offset);
+            add_ir_val(IR_PUSH_VAR_PTR, node->offset);
         break;
     default:
         error("invalid value for assign type %c (%d)", node->ty, node->ty);
@@ -186,7 +141,6 @@ static void gen_stmt(Node *node) {
         add_ir_val(IR_LABEL, lexit);
         return;
     case ND_VARDEF:
-        define_var(node->name);
         if (node->expr) {
             gen_lval(node);
             gen_expr(node->expr);
@@ -194,11 +148,9 @@ static void gen_stmt(Node *node) {
         }
         return;
     case ND_COMP_STMT:
-        env = new_env(env);
         for (int i = 0; i < node->stmts->len; i++) {
             gen_stmt(node->stmts->data[i]);
         }
-        env = env->prev;
         return;
     case ND_EXPR_STMT:
         gen_expr(node->expr);
@@ -220,38 +172,25 @@ static Function *gen_func(Node *node) {
     func->name = node->name;
     func->args = node->args->len;
     codes = new_vector();
-    varsiz = 0;
-    for (int i = 0; i < node->args->len; i++) {
-        define_var(node->args->data[i]);
-    }
     gen_stmt(node->body);
     func->codes = codes;
-    func->varsiz = varsiz;
+    func->varsiz = node->varsiz;
     return func;
 }
 
-Program *gen_ir(Vector *nodes) {
-    env = new_env(NULL);
-    Program *program = malloc(sizeof(Program));
-    program->funcs = new_vector();
+Vector *gen_ir(Vector *nodes) {
+    Vector *funcs = new_vector();
     for (int i = 0; i < nodes->len; i++) {
         Node *node = nodes->data[i];
-        Var *var;
         switch (node->ty) {
         case ND_VARDEF:
-            var = define_var(node->name);
-            var->initial = node->val;
             break;
         case ND_FUNC:
-            env = new_env(env);
-            vec_push(program->funcs, gen_func(nodes->data[i]));
-            env = env->prev;
+            vec_push(funcs, gen_func(nodes->data[i]));
             break;
         default:
             error("unexpected node type: %c (%d)", node->ty, node->ty);
         }
     }
-    // TODO: convert global variables
-    program->globals = env->vars->vals;
-    return program;
+    return funcs;
 }
