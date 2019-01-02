@@ -82,33 +82,40 @@ static Node *term() {
 
 static Node *mul() {
     Node *lhs = term();
-    if (consume('*')) {
-        return new_binop('*', lhs, mul());
-    }
-    if (consume('/')) {
-        return new_binop('/', lhs, mul());
+    for (;;) {
+        Token *t = peek();
+        if (t->ty != '*' && t->ty != '/')
+            break;
+        pos++;
+        lhs = new_binop(t->ty, lhs, term());
     }
     return lhs;
 }
 
 static Node *add() {
     Node *lhs = mul();
-    if (consume('+')) {
-        return new_binop('+', lhs, add());
-    }
-    if (consume('-')) {
-        return new_binop('-', lhs, add());
+    for (;;) {
+        Token *t = peek();
+        if (t->ty != '+' && t->ty != '-')
+            break;
+        pos++;
+        lhs = new_binop(t->ty, lhs, mul());
     }
     return lhs;
 }
 
 static Node *equality() {
     Node *lhs = add();
-    if (consume(TK_EQ)) {
-        return new_binop(ND_EQ, lhs, add());
-    }
-    if (consume(TK_NE)) {
-        return new_binop(ND_NE, lhs, add());
+    for (;;) {
+        if (consume(TK_EQ)) {
+            lhs = new_binop(ND_EQ, lhs, add());
+            continue;
+        }
+        if (consume(TK_NE)) {
+            lhs = new_binop(ND_NE, lhs, add());
+            continue;
+        }
+        break;
     }
     return lhs;
 }
