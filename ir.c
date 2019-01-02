@@ -37,7 +37,7 @@ static IR *add_ir_name(int ty, char *name) {
     return ir;
 }
 
-static void define_var(char *name) {
+static Var *define_var(char *name) {
     if (map_exists(env->vars, name)) {
         // TODO: analyze parse step
         error("define variable twice: %s", name);
@@ -53,7 +53,7 @@ static void define_var(char *name) {
         var->offset = -1;
     }
     map_put(env->vars, name, var);
-    return;
+    return var;
 }
 
 static Var *find_var(char *name) {
@@ -189,9 +189,11 @@ Program *gen_ir(Vector *nodes) {
     program->funcs = new_vector();
     for (int i = 0; i < nodes->len; i++) {
         Node *node = nodes->data[i];
+        Var *var;
         switch (node->ty) {
         case ND_VARDEF:
-            define_var(node->name);
+            var = define_var(node->name);
+            var->initial = node->val;
             break;
         case ND_FUNC:
             env = new_env(env);

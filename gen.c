@@ -124,9 +124,15 @@ static void gen_func(Function *func) {
 
 void gen(Program *program) {
     printf(".intel_syntax noprefix\n");
+    printf(".data\n");
     for (int i = 0; i < program->globals->len; i++) {
         Var *var = program->globals->data[i];
-        printf(".comm _%s, %d\n", var->name, 8);
+        if (var->initial) {
+            printf("_%s:\n", var->name);
+            printf("  .quad %d\n", var->initial);
+        } else {
+            printf(".comm _%s, %d\n", var->name, 8);
+        }
     }
     printf(".text\n");
     printf(".global _main\n");

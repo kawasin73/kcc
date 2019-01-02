@@ -57,5 +57,6 @@ try 1 "int main(){int a;{a=1;}return a;}"
 try 0 "int main(){int a = 0;{int a=1;}return a;}"
 try 3 "int x;int y;int main(){x=1;y=2;return x+y;}"
 try 2 "int x;int y;int main(){int y=2;return x+y;}"
+try 3 "int x;int y=2;int main(){int x=1;return x+y;}"
 
 echo OK

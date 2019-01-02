@@ -221,7 +221,14 @@ static Node *toplevel() {
 
     // Global Variable
     node->ty = ND_VARDEF;
-    // TODO: initial data;
+    if (consume('=')) {
+        t = next();
+        if (t->ty != TK_NUM)
+            error("global varialbe assignment only number: %s", t->input);
+        node->val = t->val;
+    } else {
+        node->val = 0;
+    }
     expect(';');
     return node;
 }

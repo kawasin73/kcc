@@ -134,6 +134,7 @@ typedef struct {
 typedef struct {
     int offset;
     char *name;
+    int initial;
 } Var;
 
 typedef struct {
