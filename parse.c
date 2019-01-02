@@ -37,9 +37,8 @@ static int consume(int c) {
 
 static void expect(int ty) {
     Token *t = next();
-    if (t->ty != ty) {
-        error("expected %c (%d)", ty, ty);
-    }
+    if (t->ty != ty)
+        error("expected %c (%d), but got %c (%d): %s", ty, ty, t->ty, t->ty, t->input);
 }
 
 static Node *assign();

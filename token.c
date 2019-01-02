@@ -35,6 +35,8 @@ static Map *keyword_map() {
 Vector *tokenize(char *p) {
     keywords = keyword_map();
     tokens = new_vector();
+
+loop:
     while (*p) {
         // skip whitespace
         if (isspace(*p)) {
@@ -48,7 +50,7 @@ Vector *tokenize(char *p) {
             if (strncmp(p, name, len) == 0) {
                 add_token(symbols[i].ty, p);
                 p += len;
-                continue;
+                goto loop;
             }
         }
 
