@@ -4,7 +4,7 @@ try() {
     expected="$1"
     input="$2"
     ./kcc "$input" > tmp.s
-    gcc -o tmp tmp.s tmp-ret1.o tmp-ret2.o tmp-plus.o
+    gcc -o tmp tmp.s
     ./tmp
     actual="$?"
 
@@ -15,10 +15,6 @@ try() {
         exit 1
     fi
 }
-
-echo 'int ret1() { return 1; }' | gcc -xc -c -o tmp-ret1.o -
-echo 'int ret2() { return 2; }' | gcc -xc -c -o tmp-ret2.o -
-echo 'int plus(int x, int y) { return x + y; }' | gcc -xc -c -o tmp-plus.o -
 
 try 0 "int main(){0;}"
 try 42 "int main(){42;}"
@@ -59,17 +55,14 @@ try 5 "int main(){int a=1; if(a){int b=2;a=3;return a+b;}else{int c=3; return a+
 try 5 "int main(){int a=1; if(a){int b=2;a=3;return a+b;}else{int b=3; return a+b;}}"
 try 5 "int main(){int a=0;for(int i=0; i!=5; i=i+1)a=a+1;return a;}"
 try 5 "int main(){int a=0;int i;for (i=0; i!=5; i=i+1) a=a+1;return a;}"
-try 1 "int main(){ret1();}"
-try 3 "int main(){ret1()+ret2();}"
-try 3 "int main(){plus(1,2);}"
-try 12 "int main(){plus(plus(1,2),3*(1+2));}"
-try 1 "int main(){tmp(); 1;}int tmp(){}"
-try 10 "int main(){int a=10;tmp(); tmp(); a;}int tmp(){int a=1;}"
-try 11 "int main(){int a=10;int b=a+tmp();return b;}int tmp(){return 1;}"
-try 1 "int main(){return tmp();}int tmp(){if(1)return 1;else return 2;}"
-try 1 "int main(){return sum(1);}int sum(int a){return a;}"
-try 9 "int main(){return sum(2,3,4);}int sum(int a,int b,int c){return a+b+c;}"
-try 14 "int main(){return sum(2,3,4);}int sum(int a,int b,int c){int d=5;return a+b+c+d;}"
+try 1 "int tmp(){}int main(){tmp(); 1;}"
+try 10 "int tmp(){int a=1;}int main(){int a=10;tmp(); tmp(); a;}"
+try 11 "int tmp(){return 1;}int main(){int a=10;int b=a+tmp();return b;}"
+try 1 "int tmp(){if(1)return 1;else return 2;}int main(){return tmp();}"
+try 1 "int sum(int a){return a;}int main(){return sum(1);}"
+try 12 "int sum(int a, int b){return a+b;}int main(){return sum(sum(1,2),3*(1+2));}"
+try 9 "int sum(int a,int b,int c){return a+b+c;}int main(){return sum(2,3,4);}"
+try 14 "int sum(int a,int b,int c){int d=5;return a+b+c+d;}int main(){return sum(2,3,4);}"
 try 1 "int main(){int a;{a=1;}return a;}"
 try 0 "int main(){int a = 0;{int a=1;}return a;}"
 try 3 "int x;int y;int main(){x=1;y=2;return x+y;}"

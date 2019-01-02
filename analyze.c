@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <assert.h>
 #include "kcc.h"
 
 typedef struct Env {
@@ -8,6 +9,7 @@ typedef struct Env {
 
 static int varsiz;
 static Env *env;
+static Map *funcs;
 
 static Env *new_env(Env *prev) {
     Env *e = malloc(sizeof(Env));
@@ -82,12 +84,18 @@ void walk(Node *node) {
         walk(node->incr);
         walk(node->body);
         break;
-    case ND_CALL:
+    case ND_CALL: {
+        Node *func = map_get(funcs, node->name);
+        if (!func)
+            error("undefined function: %s", node->name);
         for (int i = 0; i < node->args->len; i++) {
-            walk(node->args->data[i]);
+            Node *arg = node->args->data[i];
+            walk(arg);
         }
         break;
+    }
     case ND_FUNC:
+        map_put(funcs, node->name, node);
         varsiz = 0;
         env = new_env(env);
         for (int i = 0; i < node->args->len; i++) {
@@ -115,6 +123,7 @@ void walk(Node *node) {
 
 Vector *analyze(Vector *nodes) {
     env = new_env(NULL);
+    funcs = new_map();
     for (int i = 0; i < nodes->len; i++) {
         Node *node = nodes->data[i];
         Var *var;
