@@ -109,6 +109,34 @@ static void gen_expr(Node *node) {
         gen_expr(node->rhs);
         add_ir(IR_ASSIGN);
         return;
+    case ND_LOGAND: {
+        gen_expr(node->lhs);
+        int lfalse = label++;
+        int lexit = label++;
+        add_ir_val(IR_UNLESS, lfalse);
+        gen_expr(node->rhs);
+        add_ir_val(IR_UNLESS, lfalse);
+        add_ir_val(IR_PUSH_IMM, 1);
+        add_ir_val(IR_JMP, lexit);
+        add_ir_val(IR_LABEL, lfalse);
+        add_ir_val(IR_PUSH_IMM, 0);
+        add_ir_val(IR_LABEL, lexit);
+        return;
+    }
+    case ND_LOGOR: {
+        gen_expr(node->lhs);
+        int ltrue = label++;
+        int lexit = label++;
+        add_ir_val(IR_IF, ltrue);
+        gen_expr(node->rhs);
+        add_ir_val(IR_IF, ltrue);
+        add_ir_val(IR_PUSH_IMM, 0);
+        add_ir_val(IR_JMP, lexit);
+        add_ir_val(IR_LABEL, ltrue);
+        add_ir_val(IR_PUSH_IMM, 1);
+        add_ir_val(IR_LABEL, lexit);
+        return;
+    }
     }
 
     gen_expr(node->lhs);

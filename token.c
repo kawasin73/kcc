@@ -17,7 +17,7 @@ static struct {
     char *name;
     int ty;
 } symbols[] = {
-    {"==", TK_EQ}, {"!=", TK_NE},
+    {"==", TK_EQ}, {"!=", TK_NE}, {"&&", TK_LOGAND}, {"||", TK_LOGOR},
 };
 
 static Map *keywords;

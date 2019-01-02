@@ -36,6 +36,11 @@ static void gen_stmt(IR *ir) {
     case IR_LABEL:
         printf(".L%d:\n", ir->val);
         return;
+    case IR_IF:
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
+        printf("  jne .L%d\n", ir->val);
+        return;
     case IR_UNLESS:
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");

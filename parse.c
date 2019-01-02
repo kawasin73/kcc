@@ -120,8 +120,32 @@ static Node *equality() {
     return lhs;
 }
 
-static Node *assign() {
+static Node *logand() {
     Node *lhs = equality();
+    for (;;) {
+        if (consume(TK_LOGAND)) {
+            lhs = new_binop(ND_LOGAND, lhs, equality());
+            continue;
+        }
+        break;
+    }
+    return lhs;
+}
+
+static Node *logor() {
+    Node *lhs = logand();
+    for (;;) {
+        if (consume(TK_LOGOR)) {
+            lhs = new_binop(ND_LOGOR, lhs, logand());
+            continue;
+        }
+        break;
+    }
+    return lhs;
+}
+
+static Node *assign() {
+    Node *lhs = logor();
     if (consume('=')) {
         return new_binop('=', lhs, assign());
     }

@@ -41,6 +41,8 @@ enum {
     TK_IDENT,     // Identifier
     TK_EQ,        // "=="
     TK_NE,        // "!="
+    TK_LOGAND,    // "&&"
+    TK_LOGOR,     // "||"
     TK_INT,       // "int"
     TK_IF,        // "if"
     TK_ELSE,      // "else"
@@ -65,8 +67,10 @@ enum {
     ND_NUM = 256, // Number literal
     ND_VARDEF,    // Define variable
     ND_IDENT,     // Identifier
-    ND_EQ,        // equal
-    ND_NE,        // not equal
+    ND_EQ,        // "=="
+    ND_NE,        // "!="
+    ND_LOGAND,    // "&&"
+    ND_LOGOR,     // "||"
     ND_IF,        // "if"
     ND_CALL,      // Function call
     ND_FUNC,      // Function definition
@@ -119,7 +123,10 @@ enum {
     IR_EQ,
     IR_NE,
     IR_LABEL,
+    IR_IF,
     IR_UNLESS,
+    IR_LOGAND,
+    IR_LOGOR,
     IR_JMP,
     IR_CALL,
     IR_RETURN,
