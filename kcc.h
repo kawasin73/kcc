@@ -46,6 +46,7 @@ enum {
     TK_INT,       // "int"
     TK_IF,        // "if"
     TK_ELSE,      // "else"
+    TK_FOR,       // "for"
     TK_RETURN,    // "return"
     TK_EOF,       // end of file
 };
@@ -72,6 +73,7 @@ enum {
     ND_LOGAND,    // "&&"
     ND_LOGOR,     // "||"
     ND_IF,        // "if"
+    ND_FOR,       // "for"
     ND_CALL,      // Function call
     ND_FUNC,      // Function definition
     ND_RETURN,    // "return"
@@ -90,9 +92,12 @@ typedef struct Node {
     char *name;
 
     // "if" ( cond ) then "else" els
+    // "for" ( init ; cond ; incr ) body
     struct Node *cond;
     struct Node *then;
     struct Node *els;
+    struct Node *init;
+    struct Node *incr;
 
     // Function call arguments
     Vector *args;

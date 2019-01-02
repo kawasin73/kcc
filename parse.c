@@ -41,6 +41,11 @@ static void expect(int ty) {
         error("expected %c (%d), but got %c (%d): %s", ty, ty, t->ty, t->ty, t->input);
 }
 
+static int is_typename() {
+    Token *t = peek();
+    return t->ty == TK_INT;
+}
+
 static Node *assign();
 static Node *compound_stmt();
 
@@ -152,6 +157,28 @@ static Node *assign() {
     return lhs;
 }
 
+static Node *expr_stmt() {
+    Node *node = assign();
+    expect(';');
+    return node;
+}
+
+static Node *decl() {
+    expect(TK_INT);
+    Token *t = next();
+    if (t->ty != TK_IDENT)
+        error("not define variable: %s", t->input);
+    Node *node = new_node();
+    node->ty = ND_VARDEF;
+    node->name = t->name;
+
+    if (consume('=')) {
+        node = new_binop('=', node, assign());
+    }
+    expect(';');
+    return node;
+}
+
 static Node *stmt() {
     Token *t = peek();
     Node *node;
@@ -176,27 +203,28 @@ static Node *stmt() {
         expect(';');
         return node;
     case TK_INT:
+        return decl();
+    case TK_FOR:
         pos++;
-        Token *t = next();
-        if (t->ty != TK_IDENT) {
-            error("not define variable: %s", t->input);
-        }
         node = new_node();
-        node->ty = ND_VARDEF;
-        node->name = t->name;
-        if (consume('=')) {
-            node = new_binop('=', node, assign());
-        }
+        node->ty = ND_FOR;
+        expect('(');
+        if (is_typename())
+            node->init = decl();
+        else
+            node->init = expr_stmt();
+        node->cond = assign();
         expect(';');
+        node->incr = assign();
+        expect(')');
+        node->body = stmt();
         return node;
     case '{':
         pos++;
         node = compound_stmt();
         return node;
     default:
-        node = assign();
-        expect(';');
-        return node;
+        return expr_stmt();
     }
 }
 

@@ -177,6 +177,18 @@ static void gen_stmt(Node *node) {
         gen_stmt(node->els);
         add_ir_val(IR_LABEL, y);
         return;
+    case ND_FOR:
+        gen_expr(node->init);
+        int lloop = label++;
+        int lexit = label++;
+        add_ir_val(IR_LABEL, lloop);
+        gen_expr(node->cond);
+        add_ir_val(IR_UNLESS, lexit);
+        gen_stmt(node->body);
+        gen_expr(node->incr);
+        add_ir_val(IR_JMP, lloop);
+        add_ir_val(IR_LABEL, lexit);
+        return;
     case ND_VARDEF:
         define_var(node->name);
         return;
