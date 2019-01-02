@@ -203,18 +203,26 @@ static Vector *argsdef() {
     return NULL;
 }
 
-static Node *function() {
+static Node *toplevel() {
     expect(TK_INT);
     Token *t = next();
     if (t->ty != TK_IDENT)
-        error("must be function definition: %s", t->input);
+        error("must be function definition or global variable: %s", t->input);
     Node *node = new_node();
-    node->ty = ND_FUNC;
     node->name = t->name;
-    expect('(');
-    node->args = argsdef();
-    expect('{');
-    node->body = compound_stmt();
+    if (consume('(')) {
+        // Function definition
+        node->ty = ND_FUNC;
+        node->args = argsdef();
+        expect('{');
+        node->body = compound_stmt();
+        return node;
+    }
+
+    // Global Variable
+    node->ty = ND_VARDEF;
+    // TODO: initial data;
+    expect(';');
     return node;
 }
 
@@ -223,7 +231,7 @@ Vector *parse(Vector *_tokens) {
     codes = new_vector();
     pos = 0;
     for (Token *t = tokens->data[pos]; t->ty != TK_EOF; t = tokens->data[pos]) {
-        vec_push(codes, function());
+        vec_push(codes, toplevel());
     }
     return codes;
 }

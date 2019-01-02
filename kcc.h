@@ -112,6 +112,7 @@ Vector *parse(Vector *tokens);
 enum {
     IR_PUSH_IMM = 256,
     IR_PUSH_VAR_PTR,
+    IR_LABEL_ADDR,
     IR_POP,
     IR_LOAD_VAL,
     IR_ASSIGN,
@@ -131,6 +132,11 @@ typedef struct {
 } IR;
 
 typedef struct {
+    int offset;
+    char *name;
+} Var;
+
+typedef struct {
     char *name;
     Vector *codes;
     int args;
@@ -139,6 +145,7 @@ typedef struct {
 
 typedef struct {
     Vector *funcs;
+    Vector *globals;
 } Program;
 
 Program *gen_ir(Vector *nodes);

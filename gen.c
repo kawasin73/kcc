@@ -14,6 +14,11 @@ static void gen_stmt(IR *ir) {
         printf("  sub rax, %d\n", ir->val);
         printf("  push rax\n");
         return;
+    case IR_LABEL_ADDR:
+        // TODO: Mach-O only. change to ELF compatible
+        printf("  mov rax,[_%s@GOTPCREL + rip]\n", ir->name);
+        printf("  push rax\n");
+        return;
     case IR_POP:
         printf("  pop rax\n");
         return;
@@ -119,6 +124,11 @@ static void gen_func(Function *func) {
 
 void gen(Program *program) {
     printf(".intel_syntax noprefix\n");
+    for (int i = 0; i < program->globals->len; i++) {
+        Var *var = program->globals->data[i];
+        printf(".comm _%s, %d\n", var->name, 8);
+    }
+    printf(".text\n");
     printf(".global _main\n");
 
     for (int i = 0; i < program->funcs->len; i++) {

@@ -55,5 +55,7 @@ try 9 "int main(){return sum(2,3,4);}int sum(int a,int b,int c){return a+b+c;}"
 try 14 "int main(){return sum(2,3,4);}int sum(int a,int b,int c){int d=5;return a+b+c+d;}"
 try 1 "int main(){int a;{a=1;}return a;}"
 try 0 "int main(){int a = 0;{int a=1;}return a;}"
+try 3 "int x;int y;int main(){x=1;y=2;return x+y;}"
+try 2 "int x;int y;int main(){int y=2;return x+y;}"
 
 echo OK
