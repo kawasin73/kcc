@@ -181,6 +181,7 @@ static void gen_stmt(Node *node) {
         add_ir_val(IR_UNLESS, lexit);
         gen_stmt(node->body);
         gen_expr(node->incr);
+        add_ir(IR_POP);
         add_ir_val(IR_JMP, lloop);
         add_ir_val(IR_LABEL, lexit);
         return;
