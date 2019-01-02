@@ -68,6 +68,7 @@ enum {
     ND_NUM = 256, // Number literal
     ND_VARDEF,    // Define variable
     ND_IDENT,     // Identifier
+    ND_DEREF,     // "[" <number> "]"
     ND_EQ,        // "=="
     ND_NE,        // "!="
     ND_LOGAND,    // "&&"
@@ -81,6 +82,26 @@ enum {
     ND_EXPR_STMT, // Expression statement
 };
 
+enum {
+    INT, // "int"
+    PTR, // pointer
+};
+
+typedef struct Type {
+    int ty;
+
+    // Pointer
+    struct Type *ptr_of;
+} Type;
+
+typedef struct {
+    char *name;
+    Type *ty;
+    int siz;
+    int offset;
+    int initial;
+} Var;
+
 typedef struct Node {
     int op;           // node operation
     struct Node *lhs;
@@ -91,6 +112,9 @@ typedef struct Node {
 
     // Function name or Identifier
     char *name;
+    // Identifier type
+    Type *ty;
+    Var *var;
 
     // "if" ( cond ) then "else" els
     // "for" ( init ; cond ; incr ) body
@@ -114,10 +138,8 @@ typedef struct Node {
     // "return"
     // Expression statement
     // inital value for ND_VARDEF
+    // index for ND_DEREF
     struct Node *expr;
-
-    // local variable offset
-    int offset;
 } Node;
 
 Vector *parse(Vector *tokens);
@@ -125,12 +147,6 @@ Vector *parse(Vector *tokens);
 // ================================
 // ir.c
 // ================================
-
-typedef struct {
-    int offset;
-    char *name;
-    int initial;
-} Var;
 
 // returns global vars
 Vector *analyze(Vector *nodes);

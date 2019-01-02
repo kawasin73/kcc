@@ -3,6 +3,13 @@
 
 static Vector *tokens;
 static int pos;
+static Type int_ty = {INT, 0};
+
+static Type *new_type(int ty) {
+    Type *t = malloc(sizeof(Type));
+    t->ty = ty;
+    return t;
+}
 
 static Node *new_node() {
     return malloc(sizeof(Node));
@@ -45,6 +52,11 @@ static int is_typename() {
     return t->ty == TK_INT;
 }
 
+static Type *type() {
+    expect(TK_INT);
+    return new_type(INT);
+}
+
 static Node *assign();
 static Node *compound_stmt();
 
@@ -60,14 +72,18 @@ static Node *term() {
     if (t->ty == TK_NUM) {
         node->op = ND_NUM;
         node->val = t->val;
+        node->ty = &int_ty;
         return node;
     }
     if (t->ty == TK_IDENT) {
         node->name = t->name;
         if (!consume('(')) {
+            // variable access
             node->op = ND_IDENT;
             return node;
         }
+
+        // function call
         node->op = ND_CALL;
         node->args = new_vector();
         if (consume(')'))
@@ -164,15 +180,21 @@ static Node *expr_stmt() {
     return node;
 }
 
-static Node *decl() {
-    expect(TK_INT);
+static Node *param() {
+    Type *ty = type();
     Token *t = next();
     if (t->ty != TK_IDENT)
         error("not define variable: %s", t->input);
+
     Node *node = new_node();
     node->op = ND_VARDEF;
     node->name = t->name;
+    node->ty = ty;
+    return node;
+}
 
+static Node *decl() {
+    Node *node = param();
     if (consume('='))
         node->expr = assign();
     else
@@ -244,32 +266,26 @@ static Vector *argsdef() {
     Vector *args = new_vector();
     if (consume(')'))
         return args;
-    expect(TK_INT);
-    Token *t = next();
-    if (t->ty != TK_IDENT)
-        error("function argument must be literal: %s", t->input);
-    vec_push(args, t->name);
+    vec_push(args, param());
     for (int i = 0; i < 6; i++) {
         if (consume(')'))
             return args;
         expect(',');
-        expect(TK_INT);
-        t = next();
-        if (t->ty != TK_IDENT)
-            error("function argument must be literal: %s", t->input);
-        vec_push(args, t->name);
+        vec_push(args, param());
     }
+    Token *t = tokens->data[pos];
     error("too many argument: %s", t->input);
     return NULL;
 }
 
 static Node *toplevel() {
-    expect(TK_INT);
+    Type *ty = type();
     Token *t = next();
     if (t->ty != TK_IDENT)
         error("must be function definition or global variable: %s", t->input);
     Node *node = new_node();
     node->name = t->name;
+    node->ty = ty;
     if (consume('(')) {
         // Function definition
         node->op = ND_FUNC;

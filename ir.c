@@ -23,15 +23,20 @@ static IR *add_ir_name(int ty, char *name) {
     return ir;
 }
 
+static void gen_expr(Node *node);
+
 // push indicated address
 static void gen_lval(Node *node) {
     switch (node->op) {
+    case ND_DEREF:
+        gen_expr(node->expr);
+        break;
     case ND_VARDEF:
     case ND_IDENT:
-        if (node->offset == -1)
+        if (node->var->offset == -1)
             add_ir_name(IR_LABEL_ADDR, node->name);
         else
-            add_ir_val(IR_PUSH_VAR_PTR, node->offset);
+            add_ir_val(IR_PUSH_VAR_PTR, node->var->offset);
         break;
     default:
         error("invalid value for assign type %c (%d)", node->op, node->op);
@@ -44,6 +49,11 @@ static void gen_expr(Node *node) {
         add_ir_val(IR_PUSH_IMM, node->val);
         return;
     case ND_IDENT:
+        gen_lval(node);
+        if (node->var->ty->ty != PTR)
+            add_ir(IR_LOAD_VAL);
+        return;
+    case ND_DEREF:
         gen_lval(node);
         add_ir(IR_LOAD_VAL);
         return;
