@@ -82,7 +82,7 @@ enum {
 };
 
 typedef struct Node {
-    int ty;           // token type
+    int op;           // node operation
     struct Node *lhs;
     struct Node *rhs;
 

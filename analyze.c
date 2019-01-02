@@ -45,7 +45,7 @@ static Var *find_var(char *name) {
 
 void walk(Node *node) {
     Var *var;
-    switch(node->ty) {
+    switch(node->op) {
     case '=':
     case '+':
     case '-':
@@ -109,7 +109,7 @@ void walk(Node *node) {
         env = env->prev;
         break;
     default:
-        error("unexpected node on analyze %c (%d)", node->ty, node->ty);
+        error("unexpected node on analyze %c (%d)", node->op, node->op);
     }
 }
 
@@ -118,7 +118,7 @@ Vector *analyze(Vector *nodes) {
     for (int i = 0; i < nodes->len; i++) {
         Node *node = nodes->data[i];
         Var *var;
-        switch (node->ty) {
+        switch (node->op) {
         case ND_VARDEF:
             var = define_var(node->name);
             var->initial = node->val;
@@ -127,7 +127,7 @@ Vector *analyze(Vector *nodes) {
             walk(nodes->data[i]);
             break;
         default:
-            error("unexpected node type: %c (%d)", node->ty, node->ty);
+            error("unexpected node type: %c (%d)", node->op, node->op);
         }
     }
     return env->vars->vals;

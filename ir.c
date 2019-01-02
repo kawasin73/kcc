@@ -25,7 +25,7 @@ static IR *add_ir_name(int ty, char *name) {
 
 // push indicated address
 static void gen_lval(Node *node) {
-    switch (node->ty) {
+    switch (node->op) {
     case ND_VARDEF:
     case ND_IDENT:
         if (node->offset == -1)
@@ -34,12 +34,12 @@ static void gen_lval(Node *node) {
             add_ir_val(IR_PUSH_VAR_PTR, node->offset);
         break;
     default:
-        error("invalid value for assign type %c (%d)", node->ty, node->ty);
+        error("invalid value for assign type %c (%d)", node->op, node->op);
     }
 }
 
 static void gen_expr(Node *node) {
-    switch (node->ty) {
+    switch (node->op) {
     case ND_NUM:
         add_ir_val(IR_PUSH_IMM, node->val);
         return;
@@ -92,12 +92,12 @@ static void gen_expr(Node *node) {
     gen_expr(node->lhs);
     gen_expr(node->rhs);
 
-    switch (node->ty) {
+    switch (node->op) {
     case '+':
     case '-':
     case '*':
     case '/':
-        add_ir(node->ty);
+        add_ir(node->op);
         break;
     case ND_EQ:
         add_ir(IR_EQ);
@@ -106,12 +106,12 @@ static void gen_expr(Node *node) {
         add_ir(IR_NE);
         break;
     default:
-        error("unexpected ast node %d", node->ty);
+        error("unexpected ast node %d", node->op);
     }
 }
 
 static void gen_stmt(Node *node) {
-    switch (node->ty) {
+    switch (node->op) {
     case ND_IF:
         gen_expr(node->cond);
         int x = label++;
@@ -162,12 +162,12 @@ static void gen_stmt(Node *node) {
         add_ir(IR_RETURN);
         return;
     }
-    error("unexpect node for stmt: %c, %d", node->ty, node->ty);
+    error("unexpect node for stmt: %c, %d", node->op, node->op);
 }
 
 static Function *gen_func(Node *node) {
-    if (node->ty != ND_FUNC)
-        error("toplevel must be function. but get %d", node->ty);
+    if (node->op != ND_FUNC)
+        error("toplevel must be function. but get %d", node->op);
     Function *func = malloc(sizeof(Function));
     func->name = node->name;
     func->args = node->args->len;
@@ -182,14 +182,14 @@ Vector *gen_ir(Vector *nodes) {
     Vector *funcs = new_vector();
     for (int i = 0; i < nodes->len; i++) {
         Node *node = nodes->data[i];
-        switch (node->ty) {
+        switch (node->op) {
         case ND_VARDEF:
             break;
         case ND_FUNC:
             vec_push(funcs, gen_func(nodes->data[i]));
             break;
         default:
-            error("unexpected node type: %c (%d)", node->ty, node->ty);
+            error("unexpected node type: %c (%d)", node->op, node->op);
         }
     }
     return funcs;

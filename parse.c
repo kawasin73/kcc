@@ -8,9 +8,9 @@ static Node *new_node() {
     return malloc(sizeof(Node));
 }
 
-static Node *new_binop(int ty, Node *lhs, Node *rhs) {
+static Node *new_binop(int op, Node *lhs, Node *rhs) {
     Node *node = new_node();
-    node->ty = ty;
+    node->op = op;
     node->lhs = lhs;
     node->rhs = rhs;
     return node;
@@ -58,17 +58,17 @@ static Node *term() {
     }
     node = new_node();
     if (t->ty == TK_NUM) {
-        node->ty = ND_NUM;
+        node->op = ND_NUM;
         node->val = t->val;
         return node;
     }
     if (t->ty == TK_IDENT) {
         node->name = t->name;
         if (!consume('(')) {
-            node->ty = ND_IDENT;
+            node->op = ND_IDENT;
             return node;
         }
-        node->ty = ND_CALL;
+        node->op = ND_CALL;
         node->args = new_vector();
         if (consume(')'))
             return node;
@@ -158,7 +158,7 @@ static Node *assign() {
 
 static Node *expr_stmt() {
     Node *node = new_node();
-    node->ty = ND_EXPR_STMT;
+    node->op = ND_EXPR_STMT;
     node->expr = assign();
     expect(';');
     return node;
@@ -170,7 +170,7 @@ static Node *decl() {
     if (t->ty != TK_IDENT)
         error("not define variable: %s", t->input);
     Node *node = new_node();
-    node->ty = ND_VARDEF;
+    node->op = ND_VARDEF;
     node->name = t->name;
 
     if (consume('='))
@@ -188,7 +188,7 @@ static Node *stmt() {
     case TK_IF:
         pos++;
         node = new_node();
-        node->ty = ND_IF;
+        node->op = ND_IF;
         expect('(');
         node->cond = assign();
         expect(')');
@@ -200,7 +200,7 @@ static Node *stmt() {
     case TK_RETURN:
         pos++;
         node = new_node();
-        node->ty = ND_RETURN;
+        node->op = ND_RETURN;
         node->expr = assign();
         expect(';');
         return node;
@@ -209,7 +209,7 @@ static Node *stmt() {
     case TK_FOR:
         pos++;
         node = new_node();
-        node->ty = ND_FOR;
+        node->op = ND_FOR;
         expect('(');
         if (is_typename())
             node->init = decl();
@@ -232,7 +232,7 @@ static Node *stmt() {
 
 static Node *compound_stmt() {
     Node *node = new_node();
-    node->ty = ND_COMP_STMT;
+    node->op = ND_COMP_STMT;
     node->stmts = new_vector();
     while (!consume('}')) {
         vec_push(node->stmts, stmt());
@@ -272,7 +272,7 @@ static Node *toplevel() {
     node->name = t->name;
     if (consume('(')) {
         // Function definition
-        node->ty = ND_FUNC;
+        node->op = ND_FUNC;
         node->args = argsdef();
         expect('{');
         node->body = compound_stmt();
@@ -280,7 +280,7 @@ static Node *toplevel() {
     }
 
     // Global Variable
-    node->ty = ND_VARDEF;
+    node->op = ND_VARDEF;
     if (consume('=')) {
         t = next();
         if (t->ty != TK_NUM)
