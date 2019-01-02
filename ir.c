@@ -69,7 +69,6 @@ static void gen_lval(Node *node) {
     Var *var;
     switch (node->ty) {
     case ND_VARDEF:
-        define_var(node->name);
     case ND_IDENT:
         var = find_var(node->name);
         if (!var)
@@ -78,7 +77,7 @@ static void gen_lval(Node *node) {
             add_ir_name(IR_LABEL_ADDR, var->name);
         else
             add_ir_val(IR_PUSH_VAR_PTR, var->offset);
-        return;
+        break;
     default:
         error("invalid value for assign type %c (%d)", node->ty, node->ty);
     }
@@ -99,10 +98,6 @@ static void gen_expr(Node *node) {
         }
         IR *ir = add_ir_val(IR_CALL, node->args->len);
         ir->name = node->name;
-        return;
-    case ND_RETURN:
-        gen_expr(node->expr);
-        add_ir(IR_RETURN);
         return;
     case '=':
         gen_lval(node->lhs);
@@ -178,7 +173,7 @@ static void gen_stmt(Node *node) {
         add_ir_val(IR_LABEL, y);
         return;
     case ND_FOR:
-        gen_expr(node->init);
+        gen_stmt(node->init);
         int lloop = label++;
         int lexit = label++;
         add_ir_val(IR_LABEL, lloop);
@@ -191,6 +186,11 @@ static void gen_stmt(Node *node) {
         return;
     case ND_VARDEF:
         define_var(node->name);
+        if (node->expr) {
+            gen_lval(node);
+            gen_expr(node->expr);
+            add_ir(IR_ASSIGN);
+        }
         return;
     case ND_COMP_STMT:
         env = new_env(env);
@@ -199,11 +199,17 @@ static void gen_stmt(Node *node) {
         }
         env = env->prev;
         return;
-    default:
-        gen_expr(node);
+    case ND_EXPR_STMT:
+        gen_expr(node->expr);
+        add_ir(IR_POP);
+        return;
+    case ND_RETURN:
+        gen_expr(node->expr);
+        add_ir(IR_POP);
+        add_ir(IR_RETURN);
+        return;
     }
-    // last statement is return value
-    add_ir(IR_POP);
+    error("unexpect node for stmt: %c, %d", node->ty, node->ty);
 }
 
 static Function *gen_func(Node *node) {

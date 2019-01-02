@@ -158,7 +158,9 @@ static Node *assign() {
 }
 
 static Node *expr_stmt() {
-    Node *node = assign();
+    Node *node = new_node();
+    node->ty = ND_EXPR_STMT;
+    node->expr = assign();
     expect(';');
     return node;
 }
@@ -172,9 +174,10 @@ static Node *decl() {
     node->ty = ND_VARDEF;
     node->name = t->name;
 
-    if (consume('=')) {
-        node = new_binop('=', node, assign());
-    }
+    if (consume('='))
+        node->expr = assign();
+    else
+        node->expr = NULL;
     expect(';');
     return node;
 }

@@ -61,7 +61,6 @@ static void gen_stmt(IR *ir) {
         printf("  push rax\n");
         return;
     case IR_RETURN:
-        printf("  pop rax\n");
         printf("  jmp .Lend%d\n", ret);
         return;
     }
