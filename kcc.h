@@ -15,6 +15,8 @@ typedef struct {
 
 Vector *new_vector();
 void vec_push(Vector *vec, void *elem);
+void vec_pushi(Vector *vec, int elem);
+int vec_geti(Vector *vec, int idx);
 
 Map *new_map();
 void map_put(Map *map, char *key, void *val);
@@ -39,10 +41,13 @@ typedef struct Type {
 
 Type *new_type(int ty);
 int is_ptr(Type *ty);
+Type *ptr_of(Type *ty);
+Type *ary_of(Type *ty, int len);
 int size_of(Type *ty);
 int alloc_size(Type *ty);
 int equal_ty(Type *a, Type *b);
 
+void debug(char *fmt, ...);
 void error(char *fmt, ...);
 
 // ================================

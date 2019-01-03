@@ -100,9 +100,7 @@ void walk(Node *node) {
         walk(node->expr);
         if (node->expr->op != ND_IDENT)
             error("can not take addr of int");
-        Type *ty = new_type(PTR);
-        ty->ptr_of = node->expr->ty;
-        node->ty = ty;
+        node->ty = ptr_of(node->expr->ty);
         break;
     case ND_DEREF:
         walk(node->expr);

@@ -208,26 +208,20 @@ static Node *expr_stmt() {
     return node;
 }
 
-static Type *array_param(Type *base) {
-    Vector *vec = new_vector();
-    Type *ty;
+static Type *array_param(Type *ty) {
+    Vector *lens = new_vector();
     while (consume('[')) {
         Token *t = next();
         // TODO: calc on preprocess
         if (t->ty != TK_NUM)
             error("expect define array number: %s", t->input);
         expect(']');
-        ty = new_type(ARY);
-        ty->len = t->val;
-        vec_push(vec, ty);
+        vec_pushi(lens, t->val);
     }
 
     // reverse Type tree
-    ty = base;
-    for (int i = vec->len-1; i >= 0; i--) {
-        Type *tary = vec->data[i];
-        tary->ptr_of = ty;
-        ty = tary;
+    for (int i = lens->len-1; i >= 0; i--) {
+        ty = ary_of(ty, vec_geti(lens, i));
     }
     return ty;
 }
@@ -235,9 +229,7 @@ static Type *array_param(Type *base) {
 static Node *param() {
     Type *ty = type();
     while (consume('*')) {
-        Type *ptr = new_type(PTR);
-        ptr->ptr_of = ty;
-        ty = ptr;
+        ty = ptr_of(ty);
     }
     Token *t = next();
     if (t->ty != TK_IDENT)
@@ -248,7 +240,6 @@ static Node *param() {
     Node *node = new_node();
     node->op = ND_VARDEF;
     node->name = t->name;
-
     node->ty = ty;
     return node;
 }

@@ -12,13 +12,9 @@ void test_vector() {
     Vector *vec = new_vector();
     expect(__LINE__, 0, vec->len);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wint-conversion"
-#pragma GCC diagnostic ignored "-Wint-to-void-pointer-cast"
     for (int i = 0; i < 100; i++) {
-        vec_push(vec, (void *)i);
+        vec_pushi(vec, i);
     }
-#pragma GCC diagnostic pop
 
     expect(__LINE__, 100, vec->len);
     expect(__LINE__, 0, (int)vec->data[0]);

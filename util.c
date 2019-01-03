@@ -21,6 +21,18 @@ void vec_push(Vector *vec, void *elem) {
     vec->data[vec->len++] = elem;
 }
 
+void vec_pushi(Vector *vec, int elem) {
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wint-conversion"
+    #pragma GCC diagnostic ignored "-Wint-to-void-pointer-cast"
+    vec_push(vec, elem);
+    #pragma GCC diagnostic pop
+}
+
+int vec_geti(Vector *vec, int idx) {
+    return (int)vec->data[idx];
+}
+
 Map *new_map() {
     Map *map = malloc(sizeof(Map));
     map->keys = new_vector();
@@ -72,6 +84,19 @@ int is_ptr(Type *ty) {
     return ty->ty == PTR || ty->ty == ARY;
 }
 
+Type *ptr_of(Type *ty) {
+    Type *t = new_type(PTR);
+    t->ptr_of = ty;
+    return t;
+}
+
+Type *ary_of(Type *ty, int len) {
+    Type *t = new_type(ARY);
+    t->ptr_of = ty;
+    t->len = len;
+    return t;
+}
+
 int size_of(Type *ty) {
     switch (ty->ty) {
     case PTR:
@@ -98,7 +123,9 @@ int alloc_size(Type *ty) {
 }
 
 int equal_ty(Type *a, Type *b) {
-    if (is_ptr(a) && is_ptr(b))
+    if (a->ty == PTR && b->ty == PTR)
+        return equal_ty(a->ptr_of, b->ptr_of);
+    if (a->ty == ARY && b->ty == ARY)
         return equal_ty(a->ptr_of, b->ptr_of);
     if (a->ty != b->ty)
         return 0;
@@ -111,4 +138,11 @@ void error(char *fmt, ...) {
     vfprintf(stderr, fmt, ap);
     fprintf(stderr, "\n");
     exit(1);
+}
+
+void debug(char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
 }
