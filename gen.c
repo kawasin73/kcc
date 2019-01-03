@@ -108,7 +108,7 @@ static void gen_func(Function *func) {
     // set arguments from register to stack
     for (int i = 0; i < func->args; i++) {
         printf("  mov rax, rbp\n");
-        printf("  sub rax, %d\n", i*8);
+        printf("  sub rax, %d\n", (i+1)*8);
         printf("  mov [rax], %s\n", regargs[i]);
         printf("  sub rax, %d\n", 8);
     }

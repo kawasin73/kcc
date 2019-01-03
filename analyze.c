@@ -29,8 +29,8 @@ static Var *define_var(char *name, Type *ty) {
     var->siz = alloc_size(ty);
     if (env->prev) {
         // local variable
-        var->offset = varsiz;
         varsiz += var->siz;
+        var->offset = varsiz;
     } else {
         // global variable
         var->offset = -1;
