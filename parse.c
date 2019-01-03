@@ -6,13 +6,13 @@ static int pos;
 static Type int_ty = {INT, 0};
 
 static Type *new_type(int ty) {
-    Type *t = malloc(sizeof(Type));
+    Type *t = calloc(1, sizeof(Type));
     t->ty = ty;
     return t;
 }
 
 static Node *new_node() {
-    return malloc(sizeof(Node));
+    return calloc(1, sizeof(Node));
 }
 
 static Node *new_binop(int op, Node *lhs, Node *rhs) {

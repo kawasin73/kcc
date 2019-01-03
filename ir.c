@@ -5,7 +5,7 @@ static Vector *codes;
 static int label;
 
 static IR *add_ir(int ty) {
-    IR *ir = malloc(sizeof(IR));
+    IR *ir = calloc(1, sizeof(IR));
     ir->ty = ty;
     vec_push(codes, ir);
     return ir;
@@ -182,7 +182,7 @@ static void gen_stmt(Node *node) {
 static Function *gen_func(Node *node) {
     if (node->op != ND_FUNC)
         error("toplevel must be function. but get %d", node->op);
-    Function *func = malloc(sizeof(Function));
+    Function *func = calloc(1, sizeof(Function));
     func->name = node->name;
     func->args = node->args->len;
     codes = new_vector();

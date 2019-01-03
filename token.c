@@ -6,7 +6,7 @@
 static Vector *tokens;
 
 static Token *add_token(int ty, char *intput) {
-    Token *token = malloc(sizeof(Token));
+    Token *token = calloc(1, sizeof(Token));
     token->ty = ty;
     token->input = intput;
     vec_push(tokens, token);

@@ -12,14 +12,14 @@ static Env *env;
 static Map *funcs;
 
 static Env *new_env(Env *prev) {
-    Env *e = malloc(sizeof(Env));
+    Env *e = calloc(1, sizeof(Env));
     e->vars = new_map();
     e->prev = prev;
     return e;
 }
 
 static Type *new_type(int ty) {
-    Type *t = malloc(sizeof(Type));
+    Type *t = calloc(1, sizeof(Type));
     t->ty = ty;
     return t;
 }
@@ -48,7 +48,7 @@ static Var *define_var(char *name, Type *ty) {
         // TODO: analyze parse step
         error("define variable twice: %s", name);
     }
-    Var *var = malloc(sizeof(Var));
+    Var *var = calloc(1, sizeof(Var));
     var->name = name;
     var->ty = ty;
     var->siz = size_of(ty);
