@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <assert.h>
 #include "kcc.h"
 
 static char *regargs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
@@ -93,7 +94,7 @@ static void gen_stmt(IR *ir) {
         printf("  movzx rax, al\n");
         break;
     default:
-        error("unexpected IR ty %d", ir->ty);
+        assert(0 && "unknown ir");
     }
 
     printf("  push rax\n");

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <assert.h>
 #include "kcc.h"
 
 static Vector *codes;
@@ -40,7 +41,7 @@ static void gen_ptr(Node *node) {
             add_ir_val(IR_PUSH_VAR_PTR, node->var->offset);
         break;
     default:
-        error("can not get pointer from: %c (%d)", node->op, node->op);
+        assert(0 && "can not get pointer");
     }
 }
 
@@ -119,7 +120,7 @@ static void gen_expr(Node *node) {
         add_ir(IR_NE);
         break;
     default:
-        error("unexpected ast node %d", node->op);
+        assert(0 && "unknown ast node");
     }
 }
 
@@ -176,12 +177,12 @@ static void gen_stmt(Node *node) {
         add_ir(IR_RETURN);
         return;
     }
-    error("unexpect node for stmt: %c, %d", node->op, node->op);
+    assert(0 && "unknown ast node");
 }
 
 static Function *gen_func(Node *node) {
     if (node->op != ND_FUNC)
-        error("toplevel must be function. but get %d", node->op);
+        assert(0 && "must func node");
     Function *func = calloc(1, sizeof(Function));
     func->name = node->name;
     func->args = node->args->len;
@@ -203,7 +204,7 @@ Vector *gen_ir(Vector *nodes) {
             vec_push(funcs, gen_func(nodes->data[i]));
             break;
         default:
-            error("unexpected node type: %c (%d)", node->op, node->op);
+            assert(0 && "unknown ast node");
         }
     }
     return funcs;
