@@ -68,5 +68,12 @@ try 0 "int main(){int a = 0;{int a=1;}return a;}"
 try 3 "int x;int y;int main(){x=1;y=2;return x+y;}"
 try 2 "int x;int y;int main(){int y=2;return x+y;}"
 try 3 "int x;int y=2;int main(){int x=1;return x+y;}"
+try 5 "int main(){int a=5;int *b=&a;return *b;}"
+try 5 "int main(){int a=5;int *b;b=&a;return *b;}"
+try 1 "int main(){int a=5;int *b=&a;*b=1;return a;}"
+try 5 "int main(){int a=5;int *b=&a;int **c=&b;return **c;}"
+try 1 "int main(){int a=5;int *b=&a;int **c=&b;**c=1;return a;}"
+try 6 "int a=5;int *b;int main(){b=&a;*b=*b+1;return a;}"
+try 13 "int x=1;int *y;int main(){int a=5;int *b=&a;y=&x;*b=*b+*y*2;*y=*y*20-*b*2;return x+a;}"
 
 echo OK

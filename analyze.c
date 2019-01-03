@@ -18,9 +18,17 @@ static Env *new_env(Env *prev) {
     return e;
 }
 
+static Type *new_type(int ty) {
+    Type *t = malloc(sizeof(Type));
+    t->ty = ty;
+    return t;
+}
+
 static int size_of(Type *ty) {
     switch (ty->ty) {
     case INT:
+        return 8;
+    case PTR:
         return 8;
     default:
         assert(0 && "invalid type");
@@ -64,10 +72,18 @@ static Var *find_var(char *name) {
     return NULL;
 }
 
+ static int can_assign(Node *node) {
+     while (node->op == ND_DEREF)
+        node = node->expr;
+    return node->op == ND_IDENT;
+ }
+
 void walk(Node *node) {
     Var *var;
     switch(node->op) {
     case '=':
+        if (!can_assign(node->lhs))
+            error("invalid value for assign type %c (%d)", node->lhs->op, node->lhs->op);
     case '+':
     case '-':
         walk(node->lhs);
@@ -100,6 +116,14 @@ void walk(Node *node) {
             error("undefined variable: %s", node->name);
         node->var = var;
         node->ty = var->ty;
+        break;
+    case ND_ADDR:
+        walk(node->expr);
+        if (node->expr->op != ND_IDENT)
+            error("can not take addr of int");
+        Type *ty = new_type(PTR);
+        ty->ptr_of = node->expr->ty;
+        node->ty = ty;
         break;
     case ND_DEREF:
         walk(node->expr);

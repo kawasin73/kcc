@@ -100,14 +100,31 @@ static Node *term() {
     return node;
 }
 
+static Node *addr() {
+    Node *node;
+    if (consume('&')) {
+        node = new_node();
+        node->op = ND_ADDR;
+        node->expr = addr();
+        return node;
+    }
+    if (consume('*')) {
+        node = new_node();
+        node->op = ND_DEREF;
+        node->expr = addr();
+        return node;
+    }
+    return term();
+}
+
 static Node *mul() {
-    Node *lhs = term();
+    Node *lhs = addr();
     for (;;) {
         Token *t = peek();
         if (t->ty != '*' && t->ty != '/')
             break;
         pos++;
-        lhs = new_binop(t->ty, lhs, term());
+        lhs = new_binop(t->ty, lhs, addr());
     }
     return lhs;
 }
@@ -182,6 +199,11 @@ static Node *expr_stmt() {
 
 static Node *param() {
     Type *ty = type();
+    while (consume('*')) {
+        Type *ptr = new_type(PTR);
+        ptr->ptr_of = ty;
+        ty = ptr;
+    }
     Token *t = next();
     if (t->ty != TK_IDENT)
         error("not define variable: %s", t->input);
@@ -279,7 +301,13 @@ static Vector *argsdef() {
 }
 
 static Node *toplevel() {
+    // TODO: merge to param
     Type *ty = type();
+    while (consume('*')) {
+        Type *ptr = new_type(PTR);
+        ptr->ptr_of = ty;
+        ty = ptr;
+    }
     Token *t = next();
     if (t->ty != TK_IDENT)
         error("must be function definition or global variable: %s", t->input);

@@ -68,7 +68,8 @@ enum {
     ND_NUM = 256, // Number literal
     ND_VARDEF,    // Define variable
     ND_IDENT,     // Identifier
-    ND_DEREF,     // "[" <number> "]"
+    ND_ADDR,      // "&"
+    ND_DEREF,     // "*" Dereference
     ND_EQ,        // "=="
     ND_NE,        // "!="
     ND_LOGAND,    // "&&"

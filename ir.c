@@ -26,10 +26,11 @@ static IR *add_ir_name(int ty, char *name) {
 static void gen_expr(Node *node);
 
 // push indicated address
-static void gen_lval(Node *node) {
+static void gen_ptr(Node *node) {
     switch (node->op) {
     case ND_DEREF:
-        gen_expr(node->expr);
+        gen_ptr(node->expr);
+        add_ir(IR_LOAD_VAL);
         break;
     case ND_VARDEF:
     case ND_IDENT:
@@ -39,7 +40,7 @@ static void gen_lval(Node *node) {
             add_ir_val(IR_PUSH_VAR_PTR, node->var->offset);
         break;
     default:
-        error("invalid value for assign type %c (%d)", node->op, node->op);
+        error("can not get pointer from: %c (%d)", node->op, node->op);
     }
 }
 
@@ -49,12 +50,14 @@ static void gen_expr(Node *node) {
         add_ir_val(IR_PUSH_IMM, node->val);
         return;
     case ND_IDENT:
-        gen_lval(node);
-        if (node->var->ty->ty != PTR)
-            add_ir(IR_LOAD_VAL);
+        gen_ptr(node);
+        add_ir(IR_LOAD_VAL);
+        return;
+    case ND_ADDR:
+        gen_ptr(node->expr);
         return;
     case ND_DEREF:
-        gen_lval(node);
+        gen_expr(node->expr);
         add_ir(IR_LOAD_VAL);
         return;
     case ND_CALL:
@@ -65,7 +68,7 @@ static void gen_expr(Node *node) {
         ir->name = node->name;
         return;
     case '=':
-        gen_lval(node->lhs);
+        gen_ptr(node->lhs);
         gen_expr(node->rhs);
         add_ir(IR_ASSIGN);
         return;
@@ -152,9 +155,10 @@ static void gen_stmt(Node *node) {
         return;
     case ND_VARDEF:
         if (node->expr) {
-            gen_lval(node);
+            gen_ptr(node);
             gen_expr(node->expr);
             add_ir(IR_ASSIGN);
+            add_ir(IR_POP);
         }
         return;
     case ND_COMP_STMT:
