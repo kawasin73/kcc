@@ -18,31 +18,6 @@ static Env *new_env(Env *prev) {
     return e;
 }
 
-static Type *new_type(int ty) {
-    Type *t = calloc(1, sizeof(Type));
-    t->ty = ty;
-    return t;
-}
-
-static int size_of(Type *ty) {
-    switch (ty->ty) {
-    case INT:
-        return 8;
-    case PTR:
-        return 8;
-    default:
-        assert(0 && "invalid type");
-    }
-}
-
-static int equal_ty(Type *a, Type *b) {
-    if (a->ty != b->ty)
-        return 0;
-    if (a->ty == PTR)
-        return equal_ty(a->ptr_of, b->ptr_of);
-    return 1;
-}
-
 static Var *define_var(char *name, Type *ty) {
     if (map_exists(env->vars, name)) {
         // TODO: analyze parse step
@@ -51,7 +26,7 @@ static Var *define_var(char *name, Type *ty) {
     Var *var = calloc(1, sizeof(Var));
     var->name = name;
     var->ty = ty;
-    var->siz = size_of(ty);
+    var->siz = alloc_size(ty);
     if (env->prev) {
         // local variable
         var->offset = varsiz;
@@ -75,15 +50,19 @@ static Var *find_var(char *name) {
  static int can_assign(Node *node) {
      while (node->op == ND_DEREF)
         node = node->expr;
-    return node->op == ND_IDENT;
+    return is_ptr(node->ty) || node->op == ND_IDENT;
  }
 
 void walk(Node *node) {
     Var *var;
     switch(node->op) {
     case '=':
+        walk(node->lhs);
         if (!can_assign(node->lhs))
             error("invalid value for assign type %c (%d)", node->lhs->op, node->lhs->op);
+        walk(node->rhs);
+        node->ty = node->lhs->ty;
+        break;
     case '+':
     case '-':
         walk(node->lhs);
@@ -99,7 +78,7 @@ void walk(Node *node) {
         walk(node->lhs);
         walk(node->rhs);
         node->ty = node->lhs->ty;
-        if (node->ty->ty == PTR)
+        if (is_ptr(node->ty))
             error("operand is not for pointer: %c (%d)", node->op, node->op);
         break;
     case ND_NUM:
@@ -127,8 +106,8 @@ void walk(Node *node) {
         break;
     case ND_DEREF:
         walk(node->expr);
-        if (node->expr->ty->ty != PTR)
-            error("operand must be pointer");
+        if (!is_ptr(node->expr->ty))
+            error("operand accepts only pointer");
         node->ty = node->expr->ty->ptr_of;
         break;
     case ND_IF:

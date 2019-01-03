@@ -5,12 +5,6 @@ static Vector *tokens;
 static int pos;
 static Type int_ty = {INT, 0};
 
-static Type *new_type(int ty) {
-    Type *t = calloc(1, sizeof(Type));
-    t->ty = ty;
-    return t;
-}
-
 static Node *new_node() {
     return calloc(1, sizeof(Node));
 }
@@ -216,6 +210,19 @@ static Node *param() {
     Node *node = new_node();
     node->op = ND_VARDEF;
     node->name = t->name;
+
+    while (consume('[')) {
+        t = next();
+        // TODO: calc on preprocess
+        if (t->ty != TK_NUM)
+            error("expect define array number: %s", t->input);
+        expect(']');
+        Type *tary = new_type(ARY);
+        tary->len = t->val;
+        tary->ptr_of = ty;
+        ty = tary;
+    }
+
     node->ty = ty;
     return node;
 }
@@ -306,21 +313,11 @@ static Vector *argsdef() {
 }
 
 static Node *toplevel() {
-    // TODO: merge to param
-    Type *ty = type();
-    while (consume('*')) {
-        Type *ptr = new_type(PTR);
-        ptr->ptr_of = ty;
-        ty = ptr;
-    }
-    Token *t = next();
-    if (t->ty != TK_IDENT)
-        error("must be function definition or global variable: %s", t->input);
-    Node *node = new_node();
-    node->name = t->name;
-    node->ty = ty;
+    Node *node = param();
     if (consume('(')) {
         // Function definition
+        if (node->ty->ty == ARY)
+            error("function can not return array: %s", node->name);
         node->op = ND_FUNC;
         node->args = argsdef();
         expect('{');
@@ -329,9 +326,8 @@ static Node *toplevel() {
     }
 
     // Global Variable
-    node->op = ND_VARDEF;
     if (consume('=')) {
-        t = next();
+        Token *t = next();
         if (t->ty != TK_NUM)
             error("global varialbe assignment only number: %s", t->input);
         node->val = t->val;

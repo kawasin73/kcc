@@ -23,6 +23,26 @@ int map_exists(Map *map, char *key);
 void *map_get(Map *map, char *key);
 int map_geti(Map *map, char *key);
 
+enum {
+    INT, // "int"
+    PTR, // pointer
+    ARY, // array
+};
+
+typedef struct Type {
+    int ty;
+    // Pointer
+    struct Type *ptr_of;
+    // Array
+    int len;
+} Type;
+
+Type *new_type(int ty);
+int is_ptr(Type *ty);
+int size_of(Type *ty);
+int alloc_size(Type *ty);
+int equal_ty(Type *a, Type *b);
+
 void error(char *fmt, ...);
 
 // ================================
@@ -82,18 +102,6 @@ enum {
     ND_COMP_STMT, // Compound statements
     ND_EXPR_STMT, // Expression statement
 };
-
-enum {
-    INT, // "int"
-    PTR, // pointer
-};
-
-typedef struct Type {
-    int ty;
-
-    // Pointer
-    struct Type *ptr_of;
-} Type;
 
 typedef struct {
     char *name;

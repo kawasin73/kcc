@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <assert.h>
 #include "kcc.h"
 
 Vector *new_vector() {
@@ -59,6 +60,49 @@ void *map_get(Map *map, char *key) {
 
 int map_geti(Map *map, char *key) {
     return (int)map_get(map, key);
+}
+
+Type *new_type(int ty) {
+    Type *t = calloc(1, sizeof(Type));
+    t->ty = ty;
+    return t;
+}
+
+int is_ptr(Type *ty) {
+    return ty->ty == PTR || ty->ty == ARY;
+}
+
+int size_of(Type *ty) {
+    switch (ty->ty) {
+    case PTR:
+    case ARY:
+        return 8;
+    case INT:
+        return 8;
+    default:
+        assert(0 && "invalid Type");
+    }
+}
+
+int alloc_size(Type *ty) {
+    switch (ty->ty) {
+    case INT:
+        return 8;
+    case PTR:
+        return 8;
+    case ARY:
+        return alloc_size(ty->ptr_of) * ty->len;
+    default:
+        assert(0 && "invalid type");
+    }
+}
+
+int equal_ty(Type *a, Type *b) {
+    if (is_ptr(a) && is_ptr(b))
+        return equal_ty(a->ptr_of, b->ptr_of);
+    if (a->ty != b->ty)
+        return 0;
+    return 1;
 }
 
 void error(char *fmt, ...) {
