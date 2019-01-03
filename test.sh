@@ -77,5 +77,8 @@ try 1 "int main(){int a=5;int *b=&a;int **c=&b;**c=1;return a;}"
 try 6 "int a=5;int *b;int main(){b=&a;*b=*b+1;return a;}"
 try 13 "int x=1;int *y;int main(){int a=5;int *b=&a;y=&x;*b=*b+*y*2;*y=*y*20-*b*2;return x+a;}"
 try 5 "int main(){int a[2];*a=2;*(a+1)=*a+1;return *(a)+*(a+1);}"
+try 5 "int main(){int a[2];a[0]=2;a[1]=a[0]+1;return a[0]+a[1];}"
+try 3 "int main(){int a=2;int*b=&a;b[0]=3;return b[0];}"
+try 3 "int main(){int a=2;int*b=&a;b[0]=3;return a;}"
 
 echo OK

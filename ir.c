@@ -30,12 +30,7 @@ static void gen_expr(Node *node);
 static void gen_ptr(Node *node) {
     switch (node->op) {
     case ND_DEREF:
-        if (node->expr->op == '+' || node->expr->op == '-') {
-            gen_expr(node->expr);
-        } else {
-            gen_ptr(node->expr);
-            add_ir(IR_LOAD_VAL);
-        }
+        gen_expr(node->expr);
         break;
     case ND_VARDEF:
     case ND_IDENT:
@@ -114,7 +109,7 @@ static void gen_expr(Node *node) {
     case '+':
     case '-':
         if (is_ptr(node->ty)) {
-            add_ir_val(IR_PUSH_IMM, size_of(node->ty));
+            add_ir_val(IR_PUSH_IMM, alloc_size(node->ty->ptr_of));
             add_ir('*');
         }
     case '*':

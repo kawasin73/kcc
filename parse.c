@@ -94,6 +94,18 @@ static Node *term() {
     return node;
 }
 
+static Node *postfix() {
+    Node *lhs = term();
+    while (consume('[')) {
+        Node *node = new_node();
+        node->op = ND_DEREF;
+        node->expr = new_binop('+', lhs, expr());
+        lhs = node;
+        expect(']');
+    }
+    return lhs;
+}
+
 static Node *addr() {
     Node *node;
     if (consume('&')) {
@@ -108,7 +120,7 @@ static Node *addr() {
         node->expr = addr();
         return node;
     }
-    return term();
+    return postfix();
 }
 
 static Node *mul() {
@@ -196,6 +208,30 @@ static Node *expr_stmt() {
     return node;
 }
 
+static Type *array_param(Type *base) {
+    Vector *vec = new_vector();
+    Type *ty;
+    while (consume('[')) {
+        Token *t = next();
+        // TODO: calc on preprocess
+        if (t->ty != TK_NUM)
+            error("expect define array number: %s", t->input);
+        expect(']');
+        ty = new_type(ARY);
+        ty->len = t->val;
+        vec_push(vec, ty);
+    }
+
+    // reverse Type tree
+    ty = base;
+    for (int i = vec->len-1; i >= 0; i--) {
+        Type *tary = vec->data[i];
+        tary->ptr_of = ty;
+        ty = tary;
+    }
+    return ty;
+}
+
 static Node *param() {
     Type *ty = type();
     while (consume('*')) {
@@ -207,21 +243,11 @@ static Node *param() {
     if (t->ty != TK_IDENT)
         error("not define variable: %s", t->input);
 
+    ty = array_param(ty);
+
     Node *node = new_node();
     node->op = ND_VARDEF;
     node->name = t->name;
-
-    while (consume('[')) {
-        t = next();
-        // TODO: calc on preprocess
-        if (t->ty != TK_NUM)
-            error("expect define array number: %s", t->input);
-        expect(']');
-        Type *tary = new_type(ARY);
-        tary->len = t->val;
-        tary->ptr_of = ty;
-        ty = tary;
-    }
 
     node->ty = ty;
     return node;
