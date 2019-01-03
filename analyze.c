@@ -87,13 +87,13 @@ void walk(Node *node) {
         if (node->expr)
             walk(node->expr);
         var = define_var(node->name, node->ty);
-        node->var = var;
+        node->offset = var->offset;
         break;
     case ND_IDENT:
         var = find_var(node->name);
         if (!var)
             error("undefined variable: %s", node->name);
-        node->var = var;
+        node->offset = var->offset;
         node->ty = var->ty;
         break;
     case ND_ADDR:
@@ -144,6 +144,7 @@ void walk(Node *node) {
             Node *arg = node->args->data[i];
             assert(arg->op == ND_VARDEF);
             var = define_var(arg->name, arg->ty);
+            arg->offset = var->offset;
         }
         walk(node->body);
         node->varsiz = varsiz;
@@ -177,7 +178,7 @@ Vector *analyze(Vector *nodes) {
         case ND_VARDEF:
             var = define_var(node->name, node->ty);
             var->initial = node->val;
-            node->var = var;
+            node->offset = var->offset;
             break;
         case ND_FUNC:
             walk(nodes->data[i]);

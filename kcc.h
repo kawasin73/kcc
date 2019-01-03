@@ -123,7 +123,8 @@ typedef struct Node {
     char *name;
     // Identifier type
     Type *ty;
-    Var *var;
+    // local variable offset. global variable is -1.
+    int offset;
 
     // "if" ( cond ) then "else" els
     // "for" ( init ; cond ; incr ) body

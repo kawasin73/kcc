@@ -39,10 +39,10 @@ static void gen_ptr(Node *node) {
         break;
     case ND_VARDEF:
     case ND_IDENT:
-        if (node->var->offset == -1)
+        if (node->offset == -1)
             add_ir_name(IR_LABEL_ADDR, node->name);
         else
-            add_ir_val(IR_PUSH_VAR_PTR, node->var->offset);
+            add_ir_val(IR_PUSH_VAR_PTR, node->offset);
         break;
     default:
         assert(0 && "can not get pointer");
