@@ -57,14 +57,14 @@ static Type *type() {
     return new_type(INT);
 }
 
-static Node *assign();
+static Node *expr();
 static Node *compound_stmt();
 
 static Node *term() {
     Token *t = next();
     Node *node;
     if (t->ty == '(') {
-        node = assign();
+        node = expr();
         expect(')');
         return node;
     }
@@ -89,7 +89,7 @@ static Node *term() {
         if (consume(')'))
             return node;
         for (int i = 0; i < 6; i++) {
-            vec_push(node->args, assign());
+            vec_push(node->args, expr());
             if (consume(')'))
                 return node;
             expect(',');
@@ -184,15 +184,20 @@ static Node *logor() {
 static Node *assign() {
     Node *lhs = logor();
     if (consume('=')) {
-        return new_binop('=', lhs, assign());
+        return new_binop('=', lhs, expr());
     }
     return lhs;
+}
+
+// alias
+static Node *expr() {
+    return assign();
 }
 
 static Node *expr_stmt() {
     Node *node = new_node();
     node->op = ND_EXPR_STMT;
-    node->expr = assign();
+    node->expr = expr();
     expect(';');
     return node;
 }
@@ -218,7 +223,7 @@ static Node *param() {
 static Node *decl() {
     Node *node = param();
     if (consume('='))
-        node->expr = assign();
+        node->expr = expr();
     else
         node->expr = NULL;
     expect(';');
@@ -234,7 +239,7 @@ static Node *stmt() {
         node = new_node();
         node->op = ND_IF;
         expect('(');
-        node->cond = assign();
+        node->cond = expr();
         expect(')');
         node->then = stmt();
         if (consume(TK_ELSE)) {
@@ -245,7 +250,7 @@ static Node *stmt() {
         pos++;
         node = new_node();
         node->op = ND_RETURN;
-        node->expr = assign();
+        node->expr = expr();
         expect(';');
         return node;
     case TK_INT:
@@ -259,9 +264,9 @@ static Node *stmt() {
             node->init = decl();
         else
             node->init = expr_stmt();
-        node->cond = assign();
+        node->cond = expr();
         expect(';');
-        node->incr = assign();
+        node->incr = expr();
         expect(')');
         node->body = stmt();
         return node;
