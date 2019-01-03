@@ -102,6 +102,9 @@ static void gen_expr(Node *node) {
         add_ir_val(IR_LABEL, lexit);
         return;
     }
+    case ND_SIZEOF:
+        add_ir_val(IR_PUSH_IMM, alloc_size(node->ty));
+        return;
     }
 
     gen_expr(node->lhs);

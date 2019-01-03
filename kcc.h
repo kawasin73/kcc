@@ -68,6 +68,7 @@ enum {
     TK_NE,        // "!="
     TK_LOGAND,    // "&&"
     TK_LOGOR,     // "||"
+    TK_SIZEOF,    // "sizeof"
     TK_INT,       // "int"
     TK_IF,        // "if"
     TK_ELSE,      // "else"
@@ -93,8 +94,9 @@ enum {
     ND_NUM = 256, // Number literal
     ND_VARDEF,    // Define variable
     ND_IDENT,     // Identifier
-    ND_ADDR,      // "&"
+    ND_ADDR,      // "&" Reference
     ND_DEREF,     // "*" Dereference
+    ND_SIZEOF,    // "sizeof"
     ND_EQ,        // "=="
     ND_NE,        // "!="
     ND_LOGAND,    // "&&"

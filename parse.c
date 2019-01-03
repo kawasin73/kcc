@@ -106,31 +106,37 @@ static Node *postfix() {
     return lhs;
 }
 
-static Node *addr() {
+static Node *unary() {
     Node *node;
-    if (consume('&')) {
-        node = new_node();
-        node->op = ND_ADDR;
-        node->expr = addr();
-        return node;
-    }
     if (consume('*')) {
         node = new_node();
         node->op = ND_DEREF;
-        node->expr = addr();
+        node->expr = unary();
+        return node;
+    }
+    if (consume('&')) {
+        node = new_node();
+        node->op = ND_ADDR;
+        node->expr = unary();
+        return node;
+    }
+    if (consume(TK_SIZEOF)) {
+        node = new_node();
+        node->op = ND_SIZEOF;
+        node->expr = expr();
         return node;
     }
     return postfix();
 }
 
 static Node *mul() {
-    Node *lhs = addr();
+    Node *lhs = unary();
     for (;;) {
         Token *t = peek();
         if (t->ty != '*' && t->ty != '/')
             break;
         pos++;
-        lhs = new_binop(t->ty, lhs, addr());
+        lhs = new_binop(t->ty, lhs, unary());
     }
     return lhs;
 }

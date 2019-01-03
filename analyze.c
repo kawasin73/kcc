@@ -83,6 +83,11 @@ void walk(Node *node) {
         break;
     case ND_NUM:
         return;
+    case ND_SIZEOF:
+        walk(node->expr);
+        assert(node->expr->ty != NULL);
+        node->ty = node->expr->ty;
+        break;
     case ND_VARDEF:
         if (node->expr)
             walk(node->expr);
