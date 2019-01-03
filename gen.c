@@ -118,8 +118,9 @@ static void gen_func(Function *func) {
     for (int i = 0; i < func->codes->len; i++) {
         gen_stmt(func->codes->data[i]);
     }
-
     // TODO: detect "return" is not called
+    // set return value 0 for no return
+    printf(" mov rax, 0\n");
     // epilogue
     printf(".Lend%d:\n", ret++);
     printf("  mov rsp, rbp\n");
