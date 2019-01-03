@@ -51,14 +51,16 @@ static void gen_expr(Node *node) {
         return;
     case ND_IDENT:
         gen_ptr(node);
-        add_ir(IR_LOAD_VAL);
+        if (node->ty->ty != ARY)
+            add_ir(IR_LOAD_VAL);
         return;
     case ND_ADDR:
         gen_ptr(node->expr);
         return;
     case ND_DEREF:
         gen_expr(node->expr);
-        add_ir(IR_LOAD_VAL);
+        if (node->ty->ty != ARY)
+            add_ir(IR_LOAD_VAL);
         return;
     case ND_CALL:
         for (int i = 0; i < node->args->len; i++) {

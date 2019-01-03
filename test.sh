@@ -80,5 +80,7 @@ try 5 "int main(){int a[2];*a=2;*(a+1)=*a+1;return *(a)+*(a+1);}"
 try 5 "int main(){int a[2];a[0]=2;a[1]=a[0]+1;return a[0]+a[1];}"
 try 3 "int main(){int a=2;int*b=&a;b[0]=3;return b[0];}"
 try 3 "int main(){int a=2;int*b=&a;b[0]=3;return a;}"
+try 3 "int main(){int a[2];int*b=a;b[1]=3;return a[1];}"
+try 5 "int main(){int a[2][3];a[0][0]=2;a[1][2]=a[0][0]+1;return a[0][0]+a[1][2];}"
 
 echo OK
