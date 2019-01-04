@@ -352,6 +352,25 @@ static Vector *argsdef() {
     return NULL;
 }
 
+static Node *literal() {
+    Token *t = next();
+    Node *node = new_node();
+    if (t->ty == TK_NUM) {
+        node->op = ND_NUM;
+        node->val = t->val;
+        node->ty = &int_ty;
+        return node;
+    }
+    if (t->ty == TK_STR) {
+        node->op = ND_STR;
+        node->str = t->data;
+        node->ty = ary_of(&char_ty, strlen(node->str)+1);
+        return node;
+    }
+    error("must be literal: %s", t->input);
+    return NULL;
+}
+
 static Node *toplevel() {
     Node *node = param();
     if (consume('(')) {
@@ -367,12 +386,9 @@ static Node *toplevel() {
 
     // Global Variable
     if (consume('=')) {
-        Token *t = next();
-        if (t->ty != TK_NUM)
-            error("global varialbe assignment only number: %s", t->input);
-        node->val = t->val;
+        node->expr = literal();
     } else {
-        node->val = 0;
+        node->expr = NULL;
     }
     expect(';');
     return node;

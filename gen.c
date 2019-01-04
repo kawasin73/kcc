@@ -155,6 +155,30 @@ static void gen_func(Function *func) {
     printf("  ret\n");
 }
 
+void gen_literal(Literal *l) {
+    if (l->ty->ty == ARY) {
+        assert(l->ty->ptr_of->ty == CHAR);
+        printf("  .asciz \"%s\"\n", l->str);
+        return;
+    }
+    switch (size_of(l->ty)) {
+    case 1:
+        printf("  .byte %d\n", l->val);
+        break;
+    case 2:
+        printf("  .short %d\n", l->val);
+        break;
+    case 4:
+        printf("  .long %d\n", l->val);
+        break;
+    case 8:
+        printf("  .quad %d\n", l->val);
+        break;
+    default:
+        assert(0 && "invalid size");
+    }
+}
+
 void gen(Vector *globals, Vector *strs, Vector *funcs) {
     printf(".intel_syntax noprefix\n");
     printf(".data\n");
@@ -162,16 +186,18 @@ void gen(Vector *globals, Vector *strs, Vector *funcs) {
         Var *var = globals->data[i];
         if (var->initial) {
             printf("_%s:\n", var->name);
-            printf("  .quad %d\n", var->initial);
+            gen_literal(var->initial);
         } else {
-            printf(".comm _%s, %d\n", var->name, 8);
+            printf(".comm _%s, %d\n", var->name, size_of(var->ty));
         }
     }
     printf(".cstring\n");
     for (int i = 0; i < strs->len; i++) {
         Var *str = strs->data[i];
+        assert(str->ty->ty == ARY && str->ty->ptr_of->ty == CHAR);
+        assert(str->initial->ty->ty == ARY && str->initial->ty->ptr_of->ty == CHAR);
         printf("%s:\n", str->name);
-        printf("  .asciz \"%s\"\n", str->data);
+        gen_literal(str->initial);
     }
     printf(".text\n");
     printf(".global _main\n");

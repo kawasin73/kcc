@@ -100,5 +100,9 @@ try 97 "int main(){char *s=\"abc\";return s[0];}"
 try 98 "int main(){char *s=\"abc\";return s[1];}"
 try 99 "int main(){char *s=\"abc\";return s[2];}"
 try 0 "int main(){char *s=\"abc\";return s[3];}"
+try 97 "char *s=\"abc\";int main(){return s[0];}"
+try 98 "char *s=\"abc\";int main(){return s[1];}"
+try 99 "char *s=\"abc\";int main(){return s[2];}"
+try 0 "char *s=\"abc\";int main(){return s[3];}"
 
 echo OK

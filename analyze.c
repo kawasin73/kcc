@@ -20,6 +20,12 @@ static Env *new_env(Env *prev) {
     return e;
 }
 
+static Literal *new_literal(Type *ty) {
+    Literal *l = calloc(1, sizeof(Literal));
+    l->ty = ty;
+    return l;
+}
+
 static Var *new_var(char *name, Type *ty) {
     Var *var = calloc(1, sizeof(Var));
     var->name = name;
@@ -91,9 +97,11 @@ void walk(Node *node) {
     case ND_NUM:
         return;
     case ND_STR:
+        assert(node->ty->ty == ARY && node->ty->ptr_of->ty == CHAR);
         node->name = format(".L.str%d", strlabel++);
         var = new_var(node->name, node->ty);
-        var->data = node->str;
+        var->initial = new_literal(node->ty);
+        var->initial->str = node->str;
         vec_push(strings, var);
         break;
     case ND_SIZEOF:
@@ -195,7 +203,22 @@ Program *analyze(Vector *nodes) {
         switch (node->op) {
         case ND_VARDEF:
             var = define_var(node->name, node->ty);
-            var->initial = node->val;
+            if (node->expr) {
+                Node *expr = node->expr;
+                // TODO: interpreter
+                var->initial = new_literal(expr->ty);
+                if (expr->ty->ty == INT) {
+                    var->initial->val = expr->val;
+                } else {
+                    assert(expr->ty->ty == ARY && expr->ty->ptr_of->ty == CHAR);
+                    var->initial->str = expr->str;
+                }
+                if (expr->ty->ty == ARY) {
+                    var->ty = expr->ty;
+                }
+            } else {
+                var->initial = NULL;
+            }
             node->offset = var->offset;
             break;
         case ND_FUNC:

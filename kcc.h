@@ -126,15 +126,6 @@ enum {
     ND_EXPR_STMT, // Expression statement
 };
 
-typedef struct {
-    char *name;
-    Type *ty;
-    int siz;
-    int offset;
-    int initial;
-    char *data;
-} Var;
-
 typedef struct Node {
     int op;           // node operation
     struct Node *lhs;
@@ -181,13 +172,27 @@ typedef struct Node {
 Vector *parse(Vector *tokens);
 
 // ================================
-// ir.c
+// analyze.c
 // ================================
 
 typedef struct {
     Vector *globals;
     Vector *strs;
 } Program;
+
+typedef struct {
+    Type *ty;
+    int val;
+    char *str;
+} Literal;
+
+typedef struct {
+    char *name;
+    Type *ty;
+    int siz;
+    int offset;
+    Literal *initial;
+} Var;
 
 // returns global vars
 Program *analyze(Vector *nodes);
