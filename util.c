@@ -74,6 +74,27 @@ int map_geti(Map *map, char *key) {
     return (int)map_get(map, key);
 }
 
+StringBuilder *new_sb() {
+    StringBuilder *sb = malloc(sizeof(StringBuilder));
+    sb->buf = malloc(sizeof(char) * 16);
+    sb->len = 0;
+    sb->capacity = 16;
+    return sb;
+}
+
+void sb_add(StringBuilder *sb, char c) {
+    if (sb->len+1 == sb->capacity) {
+        sb->capacity *= 2;
+        sb->buf = realloc(sb->buf, sizeof(char) * sb->capacity);
+    }
+    sb->buf[sb->len++] = c;
+}
+
+char *sb_string(StringBuilder *sb) {
+    sb->buf[sb->len] = '\0';
+    return sb->buf;
+}
+
 Type *new_type(int ty) {
     Type *t = calloc(1, sizeof(Type));
     t->ty = ty;

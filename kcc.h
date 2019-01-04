@@ -8,15 +8,15 @@ typedef struct {
     int len;
 } Vector;
 
-typedef struct {
-    Vector *keys;
-    Vector *vals;
-} Map;
-
 Vector *new_vector();
 void vec_push(Vector *vec, void *elem);
 void vec_pushi(Vector *vec, int elem);
 int vec_geti(Vector *vec, int idx);
+
+typedef struct {
+    Vector *keys;
+    Vector *vals;
+} Map;
 
 Map *new_map();
 void map_put(Map *map, char *key, void *val);
@@ -24,6 +24,16 @@ void map_puti(Map *map, char *key, int val);
 int map_exists(Map *map, char *key);
 void *map_get(Map *map, char *key);
 int map_geti(Map *map, char *key);
+
+typedef struct {
+    char *buf;
+    int capacity;
+    int len;
+} StringBuilder;
+
+StringBuilder *new_sb();
+void sb_add(StringBuilder *sb, char c);
+char *sb_string(StringBuilder *sb);
 
 enum {
     INT,  // "int"
