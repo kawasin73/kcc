@@ -26,7 +26,7 @@ static Var *define_var(char *name, Type *ty) {
     Var *var = calloc(1, sizeof(Var));
     var->name = name;
     var->ty = ty;
-    var->siz = alloc_size(ty);
+    var->siz = size_of(ty);
     if (env->prev) {
         // local variable
         varsiz += var->siz;

@@ -15,8 +15,15 @@ static char *regname(int siz, int idx) {
     case 8:
         return rreg[idx];
     default:
+        debug("size %d", siz);
         assert(0 && "unexpected reg size");
     }
+}
+
+static void fill_zero(int siz, int idx) {
+    if (siz == 8)
+        return;
+    printf("  movzx %s, %s\n", regname(8, idx), regname(siz, idx));
 }
 
 static void gen_stmt(IR *ir) {
@@ -39,13 +46,14 @@ static void gen_stmt(IR *ir) {
         return;
     case IR_LOAD_VAL:
         printf("  pop rax\n");
-        printf("  mov %s, [rax]\n", regname(8, 0));
+        printf("  mov %s, [rax]\n", regname(ir->siz, 0));
+        fill_zero(ir->siz, 0);
         printf("  push rax\n");
         return;
     case IR_ASSIGN:
         printf("  pop %s\n", regname(8, 1));
         printf("  pop rax\n");
-        printf("  mov [rax], %s\n", regname(8, 1));
+        printf("  mov [rax], %s\n", regname(ir->siz, 1));
         printf("  push %s\n", regname(8, 1));
         return;
     case IR_LABEL:
@@ -100,12 +108,12 @@ static void gen_stmt(IR *ir) {
     case IR_EQ:
         printf("  cmp %s, %s\n", regname(8, 1), regname(8, 0));
         printf("  sete %s\n", regname(1, 0));
-        printf("  movzx %s, %s\n", regname(8, 0), regname(1, 0));
+        fill_zero(1, 0);
         break;
     case IR_NE:
         printf("  cmp %s, %s\n", regname(8, 1), regname(8, 0));
         printf("  setne %s\n", regname(1, 0));
-        printf("  movzx %s, %s\n", regname(8, 0), regname(1, 0));
+        fill_zero(1, 0);
         break;
     default:
         assert(0 && "unknown ir");
@@ -120,11 +128,11 @@ static void gen_func(Function *func) {
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
     // set arguments from register to stack
-    for (int i = 1; i <= func->args; i++) {
+    for (int i = 0; i < func->args->len; i++) {
+        IR *ir = func->args->data[i];
         printf("  mov rax, rbp\n");
-        printf("  sub rax, %d\n", i*8);
-        printf("  mov [rax], %s\n", regname(8, i));
-        printf("  sub rax, %d\n", 8);
+        printf("  sub rax, %d\n", ir->val);
+        printf("  mov [rax], %s\n", regname(ir->siz, i+1));
     }
     // allocate stack frame
     printf("  sub rsp, %d\n", func->varsiz);
@@ -134,7 +142,7 @@ static void gen_func(Function *func) {
     }
     // TODO: detect "return" is not called
     // set return value 0 for no return
-    printf(" mov %s, 0\n", regname(8, 0));
+    printf("  mov %s, 0\n", regname(8, 0));
     // epilogue
     printf(".Lend%d:\n", ret++);
     printf("  mov rsp, rbp\n");

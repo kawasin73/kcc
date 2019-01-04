@@ -43,8 +43,8 @@ Type *new_type(int ty);
 int is_ptr(Type *ty);
 Type *ptr_of(Type *ty);
 Type *ary_of(Type *ty, int len);
+int register_size(Type *ty);
 int size_of(Type *ty);
-int alloc_size(Type *ty);
 int equal_ty(Type *a, Type *b);
 
 void debug(char *fmt, ...);
@@ -179,6 +179,7 @@ enum {
     IR_POP,
     IR_LOAD_VAL,
     IR_ASSIGN,
+    IR_SET_ARG,
     IR_EQ,
     IR_NE,
     IR_LABEL,
@@ -193,15 +194,15 @@ enum {
 
 typedef struct {
     int op;
-    int ty;
     int val;
+    int siz;
     char *name;
 } IR;
 
 typedef struct {
     char *name;
     Vector *codes;
-    int args;
+    Vector *args;
     int varsiz;
 } Function;
 

@@ -97,11 +97,10 @@ Type *ary_of(Type *ty, int len) {
     return t;
 }
 
-int size_of(Type *ty) {
+int register_size(Type *ty) {
     switch (ty->ty) {
     case PTR:
     case ARY:
-        return 8;
     case INT:
         return 8;
     default:
@@ -109,16 +108,12 @@ int size_of(Type *ty) {
     }
 }
 
-int alloc_size(Type *ty) {
+int size_of(Type *ty) {
     switch (ty->ty) {
-    case INT:
-        return 8;
-    case PTR:
-        return 8;
     case ARY:
-        return alloc_size(ty->ptr_of) * ty->len;
+        return size_of(ty->ptr_of) * ty->len;
     default:
-        assert(0 && "invalid type");
+        return register_size(ty);
     }
 }
 

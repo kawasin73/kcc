@@ -12,9 +12,16 @@ static IR *add_ir(int op) {
     return ir;
 }
 
-static IR *add_ir_ty(int op, int ty) {
+static IR *add_ir_size(int op, int siz) {
     IR *ir = add_ir(op);
-    ir->ty = ty;
+    ir->siz = siz;
+    return ir;
+}
+
+static IR *add_ir_size_val(int op, int siz, int val) {
+    IR *ir = add_ir(op);
+    ir->siz = siz;
+    ir->val = val;
     return ir;
 }
 
@@ -58,7 +65,7 @@ static void gen_expr(Node *node) {
     case ND_IDENT:
         gen_ptr(node);
         if (node->ty->ty != ARY)
-            add_ir(IR_LOAD_VAL);
+            add_ir_size(IR_LOAD_VAL, register_size(node->ty));
         return;
     case ND_ADDR:
         gen_ptr(node->expr);
@@ -66,7 +73,7 @@ static void gen_expr(Node *node) {
     case ND_DEREF:
         gen_expr(node->expr);
         if (node->ty->ty != ARY)
-            add_ir(IR_LOAD_VAL);
+            add_ir_size(IR_LOAD_VAL, register_size(node->ty));
         return;
     case ND_CALL:
         for (int i = 0; i < node->args->len; i++) {
@@ -78,7 +85,7 @@ static void gen_expr(Node *node) {
     case '=':
         gen_ptr(node->lhs);
         gen_expr(node->rhs);
-        add_ir(IR_ASSIGN);
+        add_ir_size(IR_ASSIGN, register_size(node->ty));
         return;
     case ND_LOGAND: {
         gen_expr(node->lhs);
@@ -109,7 +116,7 @@ static void gen_expr(Node *node) {
         return;
     }
     case ND_SIZEOF:
-        add_ir_val(IR_PUSH_IMM, alloc_size(node->ty));
+        add_ir_val(IR_PUSH_IMM, size_of(node->ty));
         return;
     }
 
@@ -120,7 +127,7 @@ static void gen_expr(Node *node) {
     case '+':
     case '-':
         if (is_ptr(node->ty)) {
-            add_ir_val(IR_PUSH_IMM, alloc_size(node->ty->ptr_of));
+            add_ir_val(IR_PUSH_IMM, size_of(node->ty->ptr_of));
             add_ir('*');
         }
     case '*':
@@ -172,7 +179,7 @@ static void gen_stmt(Node *node) {
         if (node->expr) {
             gen_ptr(node);
             gen_expr(node->expr);
-            add_ir(IR_ASSIGN);
+            add_ir_size(IR_ASSIGN, register_size(node->ty));
             add_ir(IR_POP);
         }
         return;
@@ -199,7 +206,12 @@ static Function *gen_func(Node *node) {
         assert(0 && "must func node");
     Function *func = calloc(1, sizeof(Function));
     func->name = node->name;
-    func->args = node->args->len;
+    codes = new_vector();
+    for (int i = 0; i < node->args->len; i++) {
+        Node *arg = node->args->data[i];
+        add_ir_size_val(IR_SET_ARG, register_size(arg->ty), arg->offset);
+    }
+    func->args = codes;
     codes = new_vector();
     gen_stmt(node->body);
     func->codes = codes;
