@@ -47,8 +47,16 @@ static int is_typename() {
 }
 
 static Type *type() {
-    expect(TK_INT);
-    return new_type(INT);
+    Token *t = next();
+    switch (t->ty) {
+    case TK_INT:
+        return new_type(INT);
+    case TK_CHAR:
+        return new_type(CHAR);
+    default:
+        error("undefined type: %s", t->input);
+        return NULL;
+    }
 }
 
 static Node *expr();
@@ -283,6 +291,7 @@ static Node *stmt() {
         node->expr = expr();
         expect(';');
         return node;
+    case TK_CHAR:
     case TK_INT:
         return decl();
     case TK_FOR:

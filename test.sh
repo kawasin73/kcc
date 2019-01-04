@@ -82,11 +82,18 @@ try 3 "int main(){int a=2;int*b=&a;b[0]=3;return b[0];}"
 try 3 "int main(){int a=2;int*b=&a;b[0]=3;return a;}"
 try 3 "int main(){int a[2];int*b=a;b[1]=3;return a[1];}"
 try 5 "int main(){int a[2][3];a[0][0]=2;a[1][2]=a[0][0]+1;return a[0][0]+a[1][2];}"
+try 5 "int a[2][3];int main(){a[0][0]=2;a[1][2]=a[0][0]+1;return a[0][0]+a[1][2];}"
 try 8 "int main(){int a;return sizeof(a);}"
 try 8 "int main(){int a;return sizeof a;}"
 try 8 "int main(){int *a;return sizeof(a);}"
 try 64 "int main(){int a[8];return sizeof(a);}"
 try 8 "int main(){return sizeof(0);}"
 
+try 1 "int main(){char c=1;return c;}"
+try 3 "int main(){char c=1;int a=2;c=a+c;return c;}"
+try 9 "int main(){char c[3];c[0]=1;c[1]=3;c[2]=5;return c[0]+c[1]+c[2];}"
+try 9 "int main(){char c[3];char *a=c;*(a)=1;*(a+1)=3;*(a+2)=5;return c[0]+c[1]+c[2];}"
+try 1 "char tmp(){return 1;}int main(){char c=tmp();return c;}"
+try 2 "char buf[1000];char *tmp(){buf[0]=1;buf[1]=2;buf[2]=3;return buf+1;}int main(){char *c=tmp();return c[0];}"
 
 echo OK

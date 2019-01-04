@@ -30,6 +30,7 @@ static Map *keyword_map() {
     map_puti(map, "return", TK_RETURN);
     map_puti(map, "sizeof", TK_SIZEOF);
     map_puti(map, "int", TK_INT);
+    map_puti(map, "char", TK_CHAR);
     return map;
 }
 

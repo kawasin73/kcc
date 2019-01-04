@@ -26,9 +26,10 @@ void *map_get(Map *map, char *key);
 int map_geti(Map *map, char *key);
 
 enum {
-    INT, // "int"
-    PTR, // pointer
-    ARY, // array
+    INT,  // "int"
+    CHAR, // "char"
+    PTR,  // pointer
+    ARY,  // array
 };
 
 typedef struct Type {
@@ -70,6 +71,7 @@ enum {
     TK_LOGOR,     // "||"
     TK_SIZEOF,    // "sizeof"
     TK_INT,       // "int"
+    TK_CHAR,      // "char"
     TK_IF,        // "if"
     TK_ELSE,      // "else"
     TK_FOR,       // "for"

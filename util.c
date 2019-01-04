@@ -103,6 +103,8 @@ int register_size(Type *ty) {
     case ARY:
     case INT:
         return 8;
+    case CHAR:
+        return 1;
     default:
         assert(0 && "invalid Type");
     }
