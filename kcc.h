@@ -192,6 +192,7 @@ enum {
 };
 
 typedef struct {
+    int op;
     int ty;
     int val;
     char *name;

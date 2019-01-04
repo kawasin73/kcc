@@ -5,21 +5,27 @@
 static Vector *codes;
 static int label;
 
-static IR *add_ir(int ty) {
+static IR *add_ir(int op) {
     IR *ir = calloc(1, sizeof(IR));
-    ir->ty = ty;
+    ir->op = op;
     vec_push(codes, ir);
     return ir;
 }
 
-static IR *add_ir_val(int ty, int val) {
-    IR *ir = add_ir(ty);
+static IR *add_ir_ty(int op, int ty) {
+    IR *ir = add_ir(op);
+    ir->ty = ty;
+    return ir;
+}
+
+static IR *add_ir_val(int op, int val) {
+    IR *ir = add_ir(op);
     ir->val = val;
     return ir;
 }
 
-static IR *add_ir_name(int ty, char *name) {
-    IR *ir = add_ir(ty);
+static IR *add_ir_name(int op, char *name) {
+    IR *ir = add_ir(op);
     ir->name = name;
     return ir;
 }

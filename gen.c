@@ -2,11 +2,25 @@
 #include <assert.h>
 #include "kcc.h"
 
-static char *regargs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 static int ret = 0;
 
+static char *regname(int siz, int idx) {
+    // URL: https://www.sigbus.info/compilerbook/#整数レジスタの一覧
+    static char *lreg[] = {"al", "dil", "sil", "dl", "cl", "r8b", "r9b"};
+    static char *rreg[] = {"rax", "rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+    assert(idx >= 0 && idx <= 6);
+    switch (siz) {
+    case 1:
+        return lreg[idx];
+    case 8:
+        return rreg[idx];
+    default:
+        assert(0 && "unexpected reg size");
+    }
+}
+
 static void gen_stmt(IR *ir) {
-    switch (ir->ty) {
+    switch (ir->op) {
     case IR_PUSH_IMM:
         printf("  push %d\n", ir->val);
         return;
@@ -21,83 +35,83 @@ static void gen_stmt(IR *ir) {
         printf("  push rax\n");
         return;
     case IR_POP:
-        printf("  pop rax\n");
+        printf("  pop %s\n", regname(8, 0));
         return;
     case IR_LOAD_VAL:
         printf("  pop rax\n");
-        printf("  mov rax, [rax]\n");
+        printf("  mov %s, [rax]\n", regname(8, 0));
         printf("  push rax\n");
         return;
     case IR_ASSIGN:
-        printf("  pop rdi\n");
+        printf("  pop %s\n", regname(8, 1));
         printf("  pop rax\n");
-        printf("  mov [rax], rdi\n");
-        printf("  push rdi\n");
+        printf("  mov [rax], %s\n", regname(8, 1));
+        printf("  push %s\n", regname(8, 1));
         return;
     case IR_LABEL:
         printf(".L%d:\n", ir->val);
         return;
     case IR_IF:
-        printf("  pop rax\n");
-        printf("  cmp rax, 0\n");
+        printf("  pop %s\n", regname(8, 1));
+        printf("  cmp %s, 0\n", regname(8, 1));
         printf("  jne .L%d\n", ir->val);
         return;
     case IR_UNLESS:
-        printf("  pop rax\n");
-        printf("  cmp rax, 0\n");
+        printf("  pop %s\n", regname(8, 1));
+        printf("  cmp %s, 0\n", regname(8, 1));
         printf("  je .L%d\n", ir->val);
         return;
     case IR_JMP:
         printf("  jmp .L%d\n", ir->val);
         return;
     case IR_CALL:
-        for (int i = ir->val-1; i >= 0; i--) {
-            printf("  pop %s\n", regargs[i]);
+        for (int i = ir->val; i > 0; i--) {
+            printf("  pop %s\n", regname(8, i));
         }
         printf("  push rbp\n");
         printf("  push rsp\n");
         printf("  call _%s\n", ir->name);
         printf("  pop rsp\n");
         printf("  pop rbp\n");
-        printf("  push rax\n");
+        printf("  push %s\n", regname(8, 0));
         return;
     case IR_RETURN:
         printf("  jmp .Lend%d\n", ret);
         return;
     }
 
-    printf("  pop rdi\n");
-    printf("  pop rax\n");
+    printf("  pop %s\n", regname(8, 1));
+    printf("  pop %s\n", regname(8, 0));
 
-    switch (ir->ty) {
+    switch (ir->op) {
     case '+':
-        printf("  add rax, rdi\n");
+        printf("  add %s, %s\n", regname(8, 0), regname(8, 1));
         break;
     case '-':
-        printf("  sub rax, rdi\n");
+        printf("  sub %s, %s\n", regname(8, 0), regname(8, 1));
         break;
     case '*':
-        printf("  mul rdi\n");
+        printf("  mul %s\n", regname(8, 1));
         break;
     case '/':
         printf("  mov rdx, 0\n");
-        printf("  div rdi\n");
+        printf("  div %s\n", regname(8, 1));
         break;
     case IR_EQ:
-        printf("  cmp rdi, rax\n");
-        printf("  sete al\n");
-        printf("  movzx rax, al\n");
+        printf("  cmp %s, %s\n", regname(8, 1), regname(8, 0));
+        printf("  sete %s\n", regname(1, 0));
+        printf("  movzx %s, %s\n", regname(8, 0), regname(1, 0));
         break;
     case IR_NE:
-        printf("  cmp rdi, rax\n");
-        printf("  setne al\n");
-        printf("  movzx rax, al\n");
+        printf("  cmp %s, %s\n", regname(8, 1), regname(8, 0));
+        printf("  setne %s\n", regname(1, 0));
+        printf("  movzx %s, %s\n", regname(8, 0), regname(1, 0));
         break;
     default:
         assert(0 && "unknown ir");
     }
 
-    printf("  push rax\n");
+    printf("  push %s\n", regname(8, 0));
 }
 
 static void gen_func(Function *func) {
@@ -106,10 +120,10 @@ static void gen_func(Function *func) {
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
     // set arguments from register to stack
-    for (int i = 0; i < func->args; i++) {
+    for (int i = 1; i <= func->args; i++) {
         printf("  mov rax, rbp\n");
-        printf("  sub rax, %d\n", (i+1)*8);
-        printf("  mov [rax], %s\n", regargs[i]);
+        printf("  sub rax, %d\n", i*8);
+        printf("  mov [rax], %s\n", regname(8, i));
         printf("  sub rax, %d\n", 8);
     }
     // allocate stack frame
@@ -120,7 +134,7 @@ static void gen_func(Function *func) {
     }
     // TODO: detect "return" is not called
     // set return value 0 for no return
-    printf(" mov rax, 0\n");
+    printf(" mov %s, 0\n", regname(8, 0));
     // epilogue
     printf(".Lend%d:\n", ret++);
     printf("  mov rsp, rbp\n");
