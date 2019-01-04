@@ -4,7 +4,7 @@ try() {
     expected="$1"
     input="$2"
     ./kcc "$input" > tmp.s
-    gcc -o tmp tmp.s
+    gcc -o tmp tmp.s tmp-test.o
     ./tmp
     actual="$?"
 
@@ -15,6 +15,11 @@ try() {
         exit 1
     fi
 }
+
+
+cat <<EOF | gcc -xc -c -o tmp-test.o -
+int global_arr[1] = {5};
+EOF
 
 try 0 "int main(){}"
 try 0 "int main(){return 0;}"
@@ -104,5 +109,7 @@ try 97 "char *s=\"abc\";int main(){return s[0];}"
 try 98 "char *s=\"abc\";int main(){return s[1];}"
 try 99 "char *s=\"abc\";int main(){return s[2];}"
 try 0 "char *s=\"abc\";int main(){return s[3];}"
+
+try 5 "extern int global_arr[1];int main(){return global_arr[0];}"
 
 echo OK

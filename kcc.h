@@ -82,6 +82,7 @@ enum {
     TK_LOGAND,    // "&&"
     TK_LOGOR,     // "||"
     TK_SIZEOF,    // "sizeof"
+    TK_EXTERN,    // "extern"
     TK_INT,       // "int"
     TK_CHAR,      // "char"
     TK_IF,        // "if"
@@ -130,6 +131,8 @@ typedef struct Node {
     int op;           // node operation
     struct Node *lhs;
     struct Node *rhs;
+
+    int is_extern;  // "extern"
 
     // ty == ND_NUM
     int val;
@@ -191,6 +194,7 @@ typedef struct {
     Type *ty;
     int siz;
     int offset;
+    int is_extern;
     Literal *initial;
 } Var;
 

@@ -219,6 +219,7 @@ Program *analyze(Vector *nodes) {
             } else {
                 var->initial = NULL;
             }
+            var->is_extern = node->is_extern;
             node->offset = var->offset;
             break;
         case ND_FUNC:

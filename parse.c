@@ -372,6 +372,7 @@ static Node *literal() {
 }
 
 static Node *toplevel() {
+    int is_extern = consume(TK_EXTERN);
     Node *node = param();
     if (consume('(')) {
         // Function definition
@@ -385,7 +386,8 @@ static Node *toplevel() {
     }
 
     // Global Variable
-    if (consume('=')) {
+    node->is_extern = is_extern;
+    if (!is_extern && consume('=')) {
         node->expr = literal();
     } else {
         node->expr = NULL;

@@ -184,6 +184,8 @@ void gen(Vector *globals, Vector *strs, Vector *funcs) {
     printf(".data\n");
     for (int i = 0; i < globals->len; i++) {
         Var *var = globals->data[i];
+        if (var->is_extern)
+            continue;
         if (var->initial) {
             printf("_%s:\n", var->name);
             gen_literal(var->initial);
