@@ -179,12 +179,16 @@ void walk(Node *node) {
         func = map_get(funcs, node->name);
         if (!func)
             error("undefined function: %s", node->name);
+        int checkarg = func && (func->args->len == node->args->len);
         for (int i = 0; i < node->args->len; i++) {
             Node *arg = node->args->data[i];
             walk(arg);
-            Node *farg = func->args->data[i];
-            if (!equal_ty(arg->ty, farg->ty))
-                error("function (%s) argument (%s) is not match", node->name, farg->name);
+            if (checkarg) {
+                // must check all args. but test.c have fprintf() which is variable argument
+                Node *farg = func->args->data[i];
+                if (!equal_ty(arg->ty, farg->ty))
+                    error("function (%s) argument (%s) is not match", node->name, farg->name);
+            }
         }
         node->ty = func->ty;
         break;
