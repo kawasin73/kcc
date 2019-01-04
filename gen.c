@@ -38,7 +38,12 @@ static void gen_stmt(IR *ir) {
         return;
     case IR_LABEL_ADDR:
         // TODO: Mach-O only. change to ELF compatible
-        printf("  mov rax,[_%s@GOTPCREL + rip]\n", ir->name);
+        printf("  mov rax, [%s@GOTPCREL + rip]\n", ir->name);
+        printf("  push rax\n");
+        return;
+    case IR_GLOBAL_ADDR:
+        // TODO: Mach-O only. change to ELF compatible
+        printf("  mov rax, [_%s@GOTPCREL + rip]\n", ir->name);
         printf("  push rax\n");
         return;
     case IR_POP:
@@ -150,7 +155,7 @@ static void gen_func(Function *func) {
     printf("  ret\n");
 }
 
-void gen(Vector *globals, Vector *funcs) {
+void gen(Vector *globals, Vector *strs, Vector *funcs) {
     printf(".intel_syntax noprefix\n");
     printf(".data\n");
     for (int i = 0; i < globals->len; i++) {
@@ -161,6 +166,12 @@ void gen(Vector *globals, Vector *funcs) {
         } else {
             printf(".comm _%s, %d\n", var->name, 8);
         }
+    }
+    printf(".cstring\n");
+    for (int i = 0; i < strs->len; i++) {
+        Var *str = strs->data[i];
+        printf("%s:\n", str->name);
+        printf("  .asciz \"%s\"\n", str->data);
     }
     printf(".text\n");
     printf(".global _main\n");

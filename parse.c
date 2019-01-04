@@ -1,9 +1,11 @@
 #include <stdlib.h>
+#include <string.h>
 #include "kcc.h"
 
 static Vector *tokens;
 static int pos;
-static Type int_ty = {INT, 0};
+static Type int_ty = {INT};
+static Type char_ty = {CHAR};
 
 static Node *new_node() {
     return calloc(1, sizeof(Node));
@@ -75,6 +77,12 @@ static Node *term() {
         node->op = ND_NUM;
         node->val = t->val;
         node->ty = &int_ty;
+        return node;
+    }
+    if (t->ty == TK_STR) {
+        node->op = ND_STR;
+        node->str = t->data;
+        node->ty = ary_of(&char_ty, strlen(node->str)+1);
         return node;
     }
     if (t->ty == TK_IDENT) {

@@ -89,6 +89,21 @@ loop:
             continue;
         }
 
+        // string literal
+        if (*p == '"') {
+            Token *t = add_token(TK_STR, p++);
+            StringBuilder *sb = new_sb();
+            for (;*p != '"';p++) {
+                if (!*p)
+                    error("string literal is broken");
+                // TODO: escape sequence
+                sb_add(sb, *p);
+            }
+            p++;
+            t->data = sb_string(sb);
+            continue;
+        }
+
         error("can not tokenize: %s\n", p);
     }
 

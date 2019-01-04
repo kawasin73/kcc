@@ -45,10 +45,13 @@ static void gen_ptr(Node *node) {
     case ND_DEREF:
         gen_expr(node->expr);
         break;
+    case ND_STR:
+        add_ir_name(IR_LABEL_ADDR, node->name);
+        break;
     case ND_VARDEF:
     case ND_IDENT:
         if (node->offset == -1)
-            add_ir_name(IR_LABEL_ADDR, node->name);
+            add_ir_name(IR_GLOBAL_ADDR, node->name);
         else
             add_ir_val(IR_PUSH_VAR_PTR, node->offset);
         break;
@@ -61,6 +64,9 @@ static void gen_expr(Node *node) {
     switch (node->op) {
     case ND_NUM:
         add_ir_val(IR_PUSH_IMM, node->val);
+        return;
+    case ND_STR:
+        gen_ptr(node);
         return;
     case ND_IDENT:
         gen_ptr(node);

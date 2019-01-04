@@ -14,8 +14,8 @@ int main(int argc, char **argv) {
 
     Vector *tokens = tokenize(argv[1]);
     Vector *nodes = parse(tokens);
-    Vector *globals = analyze(nodes);
+    Program *program = analyze(nodes);
     Vector *funcs = gen_ir(nodes);
-    gen(globals, funcs);
+    gen(program->globals, program->strs, funcs);
     return 0;
 }

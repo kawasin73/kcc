@@ -9,6 +9,8 @@ typedef struct Env {
 
 static int varsiz;
 static Env *env;
+static Vector *strings;
+static int strlabel;
 static Map *funcs;
 
 static Env *new_env(Env *prev) {
@@ -18,15 +20,20 @@ static Env *new_env(Env *prev) {
     return e;
 }
 
+static Var *new_var(char *name, Type *ty) {
+    Var *var = calloc(1, sizeof(Var));
+    var->name = name;
+    var->ty = ty;
+    var->siz = size_of(ty);
+    return var;
+}
+
 static Var *define_var(char *name, Type *ty) {
     if (map_exists(env->vars, name)) {
         // TODO: analyze parse step
         error("define variable twice: %s", name);
     }
-    Var *var = calloc(1, sizeof(Var));
-    var->name = name;
-    var->ty = ty;
-    var->siz = size_of(ty);
+    Var *var = new_var(name, ty);
     if (env->prev) {
         // local variable
         varsiz += var->siz;
@@ -83,6 +90,12 @@ void walk(Node *node) {
         break;
     case ND_NUM:
         return;
+    case ND_STR:
+        node->name = format(".L.str%d", strlabel++);
+        var = new_var(node->name, node->ty);
+        var->data = node->str;
+        vec_push(strings, var);
+        break;
     case ND_SIZEOF:
         walk(node->expr);
         assert(node->expr->ty != NULL);
@@ -171,8 +184,10 @@ void walk(Node *node) {
     }
 }
 
-Vector *analyze(Vector *nodes) {
+Program *analyze(Vector *nodes) {
     env = new_env(NULL);
+    strings = new_vector();
+    strlabel = 0;
     funcs = new_map();
     for (int i = 0; i < nodes->len; i++) {
         Node *node = nodes->data[i];
@@ -190,5 +205,8 @@ Vector *analyze(Vector *nodes) {
             error("unexpected node type: %c (%d)", node->op, node->op);
         }
     }
-    return env->vars->vals;
+    Program *program = calloc(1, sizeof(Program));
+    program->globals = env->vars->vals;
+    program->strs = strings;
+    return program;
 }

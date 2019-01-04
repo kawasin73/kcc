@@ -58,6 +58,7 @@ int register_size(Type *ty);
 int size_of(Type *ty);
 int equal_ty(Type *a, Type *b);
 
+char *format(char *fmt, ...);;
 void debug(char *fmt, ...);
 void error(char *fmt, ...);
 
@@ -74,6 +75,7 @@ void run_test();
 // token type
 enum {
     TK_NUM = 256, // Number literal
+    TK_STR,       // String literal
     TK_IDENT,     // Identifier
     TK_EQ,        // "=="
     TK_NE,        // "!="
@@ -93,6 +95,7 @@ typedef struct {
     int ty;      // token type
     int val;     // number value for TK_NUM
     char *name;  // name for TK_IDENT
+    char *data;  // data for TK_STR
     char *input; // original token (for error message)
 } Token;
 
@@ -104,6 +107,7 @@ Vector *tokenize(char *p);
 
 enum {
     ND_NUM = 256, // Number literal
+    ND_STR,       // String literal
     ND_VARDEF,    // Define variable
     ND_IDENT,     // Identifier
     ND_ADDR,      // "&" Reference
@@ -128,6 +132,7 @@ typedef struct {
     int siz;
     int offset;
     int initial;
+    char *data;
 } Var;
 
 typedef struct Node {
@@ -137,8 +142,10 @@ typedef struct Node {
 
     // ty == ND_NUM
     int val;
+    // ty == ND_STR
+    char *str;
 
-    // Function name or Identifier
+    // Function name or Identifier or String literal label
     char *name;
     // Identifier type
     Type *ty;
@@ -177,8 +184,13 @@ Vector *parse(Vector *tokens);
 // ir.c
 // ================================
 
+typedef struct {
+    Vector *globals;
+    Vector *strs;
+} Program;
+
 // returns global vars
-Vector *analyze(Vector *nodes);
+Program *analyze(Vector *nodes);
 
 // ================================
 // ir.c
@@ -188,6 +200,7 @@ enum {
     IR_PUSH_IMM = 256,
     IR_PUSH_VAR_PTR,
     IR_LABEL_ADDR,
+    IR_GLOBAL_ADDR,
     IR_POP,
     IR_LOAD_VAL,
     IR_ASSIGN,
@@ -224,4 +237,4 @@ Vector *gen_ir(Vector *nodes);
 // gen.c
 // ================================
 
-void gen(Vector *globals, Vector *funcs);
+void gen(Vector *globals, Vector *strs, Vector *funcs);

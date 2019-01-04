@@ -96,4 +96,9 @@ try 9 "int main(){char c[3];char *a=c;*(a)=1;*(a+1)=3;*(a+2)=5;return c[0]+c[1]+
 try 1 "char tmp(){return 1;}int main(){char c=tmp();return c;}"
 try 2 "char buf[1000];char *tmp(){buf[0]=1;buf[1]=2;buf[2]=3;return buf+1;}int main(){char *c=tmp();return c[0];}"
 
+try 97 "int main(){char *s=\"abc\";return s[0];}"
+try 98 "int main(){char *s=\"abc\";return s[1];}"
+try 99 "int main(){char *s=\"abc\";return s[2];}"
+try 0 "int main(){char *s=\"abc\";return s[3];}"
+
 echo OK
