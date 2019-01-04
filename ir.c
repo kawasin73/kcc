@@ -230,6 +230,7 @@ Vector *gen_ir(Vector *nodes) {
     for (int i = 0; i < nodes->len; i++) {
         Node *node = nodes->data[i];
         switch (node->op) {
+        case ND_FUNCDEF:
         case ND_VARDEF:
             break;
         case ND_FUNC:

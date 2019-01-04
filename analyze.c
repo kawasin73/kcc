@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include "kcc.h"
 
 typedef struct Env {
@@ -66,8 +67,25 @@ static Var *find_var(char *name) {
     return is_ptr(node->ty) || node->op == ND_IDENT;
  }
 
+ static void assert_func(Node *a, Node *b) {
+     assert(a->op == ND_FUNC || a->op == ND_FUNCDEF);
+     assert(b->op == ND_FUNC || b->op == ND_FUNCDEF);
+     assert((strcmp(a->name, b->name) == 0));
+     if (!equal_ty(a->ty, b->ty))
+        error("function return value type is not match: %s", a->name);
+     if (a->args->len != b->args->len)
+        error("function args size is not match: %s", a->name);
+     for (int i = 0; i < a->args->len; i++) {
+        Node *aarg = a->args->data[i];
+        Node *barg = b->args->data[i];
+        if (!equal_ty(aarg->ty, barg->ty))
+            error("function (%s) argument (%s, %s) type is not match:", a->name, aarg->name, barg->name);
+    }
+ }
+
 void walk(Node *node) {
     Var *var;
+    Node *func;
     switch(node->op) {
     case '=':
         walk(node->lhs);
@@ -146,8 +164,8 @@ void walk(Node *node) {
         walk(node->incr);
         walk(node->body);
         break;
-    case ND_CALL: {
-        Node *func = map_get(funcs, node->name);
+    case ND_CALL:
+        func = map_get(funcs, node->name);
         if (!func)
             error("undefined function: %s", node->name);
         for (int i = 0; i < node->args->len; i++) {
@@ -159,8 +177,20 @@ void walk(Node *node) {
         }
         node->ty = func->ty;
         break;
-    }
+    case ND_FUNCDEF:
+        func = map_get(funcs, node->name);
+        if (func)
+            assert_func(func, node);
+        else
+            map_put(funcs, node->name, node);
+        break;
     case ND_FUNC:
+        func = map_get(funcs, node->name);
+        if (func) {
+            if (func->op == ND_FUNC)
+                error("function is already defined: %s", func->name);
+            assert_func(func, node);
+        }
         map_put(funcs, node->name, node);
         varsiz = 0;
         env = new_env(env);
@@ -222,6 +252,7 @@ Program *analyze(Vector *nodes) {
             var->is_extern = node->is_extern;
             node->offset = var->offset;
             break;
+        case ND_FUNCDEF:
         case ND_FUNC:
             walk(nodes->data[i]);
             break;

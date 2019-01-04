@@ -19,6 +19,9 @@ try() {
 
 cat <<EOF | gcc -xc -c -o tmp-test.o -
 int global_arr[1] = {5};
+int plus(int a, int b) {
+    return a + b;
+}
 EOF
 
 try 0 "int main(){}"
@@ -110,6 +113,8 @@ try 98 "char *s=\"abc\";int main(){return s[1];}"
 try 99 "char *s=\"abc\";int main(){return s[2];}"
 try 0 "char *s=\"abc\";int main(){return s[3];}"
 
+try 3 "int sum(int a, int b);int main() {return sum(1,2);}int sum(int x, int y){return x+y;}"
+try 3 "int plus(int a, int b);int main() {return plus(1,2);}"
 try 5 "extern int global_arr[1];int main(){return global_arr[0];}"
 
 echo OK

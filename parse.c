@@ -378,8 +378,12 @@ static Node *toplevel() {
         // Function definition
         if (node->ty->ty == ARY)
             error("function can not return array: %s", node->name);
-        node->op = ND_FUNC;
         node->args = argsdef();
+        if (consume(';')) {
+            node->op = ND_FUNCDEF;
+            return node;
+        }
+        node->op = ND_FUNC;
         expect('{');
         node->body = compound_stmt();
         return node;

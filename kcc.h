@@ -121,6 +121,7 @@ enum {
     ND_IF,        // "if"
     ND_FOR,       // "for"
     ND_CALL,      // Function call
+    ND_FUNCDEF,   // Function pre definition
     ND_FUNC,      // Function definition
     ND_RETURN,    // "return"
     ND_COMP_STMT, // Compound statements
