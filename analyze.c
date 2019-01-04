@@ -74,6 +74,12 @@ static Var *find_var(char *name) {
     return is_ptr(node->ty) || node->op == ND_IDENT;
  }
 
+ static int can_call(Type *carg, Type *farg) {
+    if (is_ptr(carg) && is_ptr(farg))
+        return dig_ptr_of(carg) == dig_ptr_of(farg);
+    return equal_ty(carg, farg);
+ }
+
  static void assert_func(Node *a, Node *b) {
      assert(a->op == ND_FUNC || a->op == ND_FUNCDEF);
      assert(b->op == ND_FUNC || b->op == ND_FUNCDEF);
@@ -186,7 +192,8 @@ void walk(Node *node) {
             if (checkarg) {
                 // must check all args. but test.c have fprintf() which is variable argument
                 Node *farg = func->args->data[i];
-                if (!equal_ty(arg->ty, farg->ty))
+
+                if (!can_call(arg->ty, farg->ty))
                     error("function (%s) argument (%s) is not match", node->name, farg->name);
             }
         }

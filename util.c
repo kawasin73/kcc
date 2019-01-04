@@ -118,6 +118,12 @@ Type *ary_of(Type *ty, int len) {
     return t;
 }
 
+int dig_ptr_of(Type *ty) {
+    if (is_ptr(ty))
+        return dig_ptr_of(ty->ptr_of);
+    return ty->ty;
+}
+
 int register_size(Type *ty) {
     switch (ty->ty) {
     case PTR:

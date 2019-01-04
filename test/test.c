@@ -46,6 +46,9 @@ int *bigarray() {
     }
     return z+1;
 }
+int setarray(int *ary, int idx, int val) {
+    return ary[idx] = val;
+}
 
 
 int main() {
@@ -126,6 +129,7 @@ int main() {
     EXPECT(3, {int a[2][3];a[1][2]=3;return *(a[1]+2);});
     EXPECT(2, bigarray()[0]);
     EXPECT(1024, bigarray()[1022]);
+    EXPECT(3, {int ary[1024];setarray(ary, 1023, 3);return ary[1023];});
 
     // logand logor
     EXPECT(1, 10&&2);

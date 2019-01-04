@@ -54,6 +54,7 @@ Type *new_type(int ty);
 int is_ptr(Type *ty);
 Type *ptr_of(Type *ty);
 Type *ary_of(Type *ty, int len);
+int dig_ptr_of(Type *ty);
 int register_size(Type *ty);
 int size_of(Type *ty);
 int equal_ty(Type *a, Type *b);
