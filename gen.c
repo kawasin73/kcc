@@ -149,7 +149,8 @@ static void gen_func(Function *func) {
         printf("  mov [rax], %s\n", regname(ir->siz, i+1));
     }
     // allocate stack frame
-    printf("  sub rsp, %d\n", func->varsiz);
+    // stack size must be aligned 16bytes.
+    printf("  sub rsp, %d\n", ((func->varsiz + 15)/16)*16);
 
     for (int i = 0; i < func->codes->len; i++) {
         gen_stmt(func->codes->data[i]);
