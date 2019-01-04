@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 #include "kcc.h"
 
@@ -163,10 +164,29 @@ static void gen_func(Function *func) {
     printf("  ret\n");
 }
 
+char *backslash_escape(char *str, int len) {
+    StringBuilder *sb = new_sb();
+    for (int i = 0; i < len; i++) {
+        static char escape_table[256] = {
+            ['\b'] = 'b', ['\f'] = 'f', ['\n'] = 'n',
+            ['\r'] = 'r', ['\t'] = 't', ['"'] = '"',
+            ['\\'] = '\\',
+        };
+        if (escape_table[(int)str[i]]) {
+            sb_add(sb, '\\');
+            sb_add(sb, escape_table[(int)str[i]]);
+        } else {
+            sb_add(sb, str[i]);
+        }
+    }
+    // return str;
+    return sb_string(sb);
+}
+
 void gen_literal(Literal *l) {
     if (l->ty->ty == ARY) {
         assert(l->ty->ptr_of->ty == CHAR);
-        printf("  .asciz \"%s\"\n", l->str);
+        printf("  .asciz \"%s\"\n", backslash_escape(l->str, strlen(l->str)));
         return;
     }
     switch (size_of(l->ty)) {

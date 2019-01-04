@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "kcc.h"
 
 static Vector *tokens;
@@ -35,6 +36,33 @@ static Map *keyword_map() {
     map_puti(map, "int", TK_INT);
     map_puti(map, "char", TK_CHAR);
     return map;
+}
+
+static char *string_literal(char *p) {
+    assert(*p == '"');
+    Token *t = add_token(TK_STR, p++);
+    StringBuilder *sb = new_sb();
+    for (;*p != '"';p++) {
+        if (!*p)
+            error("string literal is broken");
+        if (*p == '\\') {
+            p++;
+            // escape sequence
+            static char escaped_table[256] = {
+                ['a'] = '\a', ['b'] = '\b', ['f'] = '\f', ['n'] = '\n',
+                ['r'] = '\r', ['t'] = '\t', ['v'] = '\v',
+            };
+            if (escaped_table[(int)*p]) {
+                sb_add(sb, escaped_table[(int)*p]);
+                continue;
+            }
+        }
+        // TODO: escape sequence
+        sb_add(sb, *p);
+    }
+    p++;
+    t->data = sb_string(sb);
+    return p;
 }
 
 // parse p to tokens
@@ -94,16 +122,7 @@ loop:
 
         // string literal
         if (*p == '"') {
-            Token *t = add_token(TK_STR, p++);
-            StringBuilder *sb = new_sb();
-            for (;*p != '"';p++) {
-                if (!*p)
-                    error("string literal is broken");
-                // TODO: escape sequence
-                sb_add(sb, *p);
-            }
-            p++;
-            t->data = sb_string(sb);
+            p = string_literal(p);
             continue;
         }
 
