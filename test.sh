@@ -55,6 +55,7 @@ try 2 "int a=2;int tmp(){a=a+1;return a;}int main(){0&&tmp();return a;}"
 try 2 "int a=2;int tmp(){a=a+1;return a;}int main(){a||tmp();return a;}"
 try 3 "int a=2;int tmp(){a=a+1;return a;}int main(){0||tmp();return a;}"
 try 69 "int main(){int abc=3;int _23=23;return abc*_23;}"
+
 try 5 "int main(){int a=10;int b=0;if(a==10)b=5;return b;}"
 try 5 "int main(){int a=0;if(a=10)a=5;return a;}"
 try 0 "int main(){int a=0;if(2*(1-1))a=5;return a;}"
@@ -64,6 +65,9 @@ try 5 "int main(){int a=1; if(a){int b=2;a=3;return a+b;}else{int c=3; return a+
 try 5 "int main(){int a=1; if(a){int b=2;a=3;return a+b;}else{int b=3; return a+b;}}"
 try 5 "int main(){int a=0;for(int i=0; i!=5; i=i+1)a=a+1;return a;}"
 try 5 "int main(){int a=0;int i;for (i=0; i!=5; i=i+1) a=a+1;return a;}"
+try 5 "int main(){int a=0;do{a=a+1;}while(a!=5);return a;}"
+try 10 "int main(){int a=0;do{a=10;}while(0);return a;}"
+
 try 1 "int tmp(){}int main(){tmp();return 1;}"
 try 10 "int tmp(){int a=1;}int main(){int a=10;tmp();tmp();return a;}"
 try 11 "int tmp(){return 1;}int main(){int a=10;int b=a+tmp();return b;}"

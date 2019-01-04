@@ -27,6 +27,8 @@ static Map *keyword_map() {
     map_puti(map, "if", TK_IF);
     map_puti(map, "else", TK_ELSE);
     map_puti(map, "for", TK_FOR);
+    map_puti(map, "do", TK_DO);
+    map_puti(map, "while", TK_WHILE);
     map_puti(map, "return", TK_RETURN);
     map_puti(map, "sizeof", TK_SIZEOF);
     map_puti(map, "extern", TK_EXTERN);

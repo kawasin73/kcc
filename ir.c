@@ -181,6 +181,13 @@ static void gen_stmt(Node *node) {
         add_ir_val(IR_JMP, lloop);
         add_ir_val(IR_LABEL, lexit);
         return;
+    case ND_DO_WHILE: {
+        int lloop = label++;
+        add_ir_val(IR_LABEL, lloop);
+        gen_stmt(node->then);
+        gen_expr(node->cond);
+        add_ir_val(IR_IF, lloop);
+    }
     case ND_VARDEF:
         if (node->expr) {
             gen_ptr(node);

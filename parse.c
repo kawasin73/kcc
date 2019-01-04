@@ -317,6 +317,17 @@ static Node *stmt() {
         expect(')');
         node->body = stmt();
         return node;
+    case TK_DO:
+        pos++;
+        node = new_node();
+        node->op = ND_DO_WHILE;
+        node->then = stmt();
+        expect(TK_WHILE);
+        expect('(');
+        node->cond = expr();
+        expect(')');
+        expect(';');
+        return node;
     case '{':
         pos++;
         node = compound_stmt();

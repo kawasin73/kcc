@@ -164,6 +164,10 @@ void walk(Node *node) {
         walk(node->incr);
         walk(node->body);
         break;
+    case ND_DO_WHILE:
+        walk(node->then);
+        walk(node->cond);
+        break;
     case ND_CALL:
         func = map_get(funcs, node->name);
         if (!func)

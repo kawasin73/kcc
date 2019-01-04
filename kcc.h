@@ -88,6 +88,8 @@ enum {
     TK_IF,        // "if"
     TK_ELSE,      // "else"
     TK_FOR,       // "for"
+    TK_DO,        // "do"
+    TK_WHILE,     // "while"
     TK_RETURN,    // "return"
     TK_EOF,       // end of file
 };
@@ -120,6 +122,7 @@ enum {
     ND_LOGOR,     // "||"
     ND_IF,        // "if"
     ND_FOR,       // "for"
+    ND_DO_WHILE,  // "do" ~ "while"
     ND_CALL,      // Function call
     ND_FUNCDEF,   // Function pre definition
     ND_FUNC,      // Function definition
@@ -149,6 +152,7 @@ typedef struct Node {
 
     // "if" ( cond ) then "else" els
     // "for" ( init ; cond ; incr ) body
+    // "do" then "while" ( cond )
     struct Node *cond;
     struct Node *then;
     struct Node *els;
