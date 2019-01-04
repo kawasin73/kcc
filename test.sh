@@ -121,4 +121,6 @@ try 3 "int sum(int a, int b);int main() {return sum(1,2);}int sum(int x, int y){
 try 3 "int plus(int a, int b);int main() {return plus(1,2);}"
 try 5 "extern int global_arr[1];int main(){return global_arr[0];}"
 
+try 5 "int main(){return 2+({return 3;});}"
+
 echo OK

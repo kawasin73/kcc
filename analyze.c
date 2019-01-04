@@ -5,6 +5,7 @@
 
 typedef struct Env {
     Map *vars;
+    int endlabel;
     struct Env *prev;
 } Env;
 
@@ -12,12 +13,18 @@ static int varsiz;
 static Env *env;
 static Vector *strings;
 static int strlabel;
+static int endlabel;
 static Map *funcs;
 
 static Env *new_env(Env *prev) {
     Env *e = calloc(1, sizeof(Env));
     e->vars = new_map();
     e->prev = prev;
+    if (prev) {
+        e->endlabel = prev->endlabel;
+    } else {
+        e->endlabel = endlabel;
+    }
     return e;
 }
 
@@ -198,6 +205,8 @@ void walk(Node *node) {
         map_put(funcs, node->name, node);
         varsiz = 0;
         env = new_env(env);
+        env->endlabel = endlabel++;
+        node->endlabel = env->endlabel;
         for (int i = 0; i < node->args->len; i++) {
             Node *arg = node->args->data[i];
             assert(arg->op == ND_VARDEF);
@@ -209,9 +218,20 @@ void walk(Node *node) {
         env = env->prev;
         break;
     case ND_EXPR_STMT:
+        walk(node->expr);
+        break;
     case ND_RETURN:
         walk(node->expr);
+        node->endlabel = env->endlabel;
         // TODO: return value type check
+        break;
+    case ND_STMT_EXPR:
+        env = new_env(env);
+        env->endlabel = endlabel++;
+        node->endlabel = env->endlabel;
+        walk(node->expr);
+        env = env->prev;
+        node->ty = NULL;
         break;
     case ND_COMP_STMT:
         env = new_env(env);
@@ -220,7 +240,7 @@ void walk(Node *node) {
         }
         env = env->prev;
         node->ty = NULL;
-        return;
+        break;
     default:
         error("unexpected node on analyze %c (%d)", node->op, node->op);
     }

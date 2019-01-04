@@ -38,6 +38,7 @@ static IR *add_ir_name(int op, char *name) {
 }
 
 static void gen_expr(Node *node);
+static void gen_stmt(Node *node);
 
 // push indicated address
 static void gen_ptr(Node *node) {
@@ -46,12 +47,12 @@ static void gen_ptr(Node *node) {
         gen_expr(node->expr);
         break;
     case ND_STR:
-        add_ir_name(IR_LABEL_ADDR, node->name);
+        add_ir_name(IR_ADDR_LABEL, node->name);
         break;
     case ND_VARDEF:
     case ND_IDENT:
         if (node->offset == -1)
-            add_ir_name(IR_GLOBAL_ADDR, node->name);
+            add_ir_name(IR_ADDR_GLOBAL, node->name);
         else
             add_ir_val(IR_PUSH_VAR_PTR, node->offset);
         break;
@@ -123,6 +124,11 @@ static void gen_expr(Node *node) {
     }
     case ND_SIZEOF:
         add_ir_val(IR_PUSH_IMM, size_of(node->ty));
+        return;
+    case ND_STMT_EXPR:
+        gen_stmt(node->expr);
+        add_ir_val(IR_LABEL_END, node->endlabel);
+        add_ir(IR_PUSH);
         return;
     }
 
@@ -208,7 +214,7 @@ static void gen_stmt(Node *node) {
     case ND_RETURN:
         gen_expr(node->expr);
         add_ir(IR_POP);
-        add_ir(IR_RETURN);
+        add_ir_val(IR_RETURN, node->endlabel);
         return;
     }
     assert(0 && "unknown ast node");
@@ -229,6 +235,7 @@ static Function *gen_func(Node *node) {
     gen_stmt(node->body);
     func->codes = codes;
     func->varsiz = node->varsiz;
+    func->endlabel = node->endlabel;
     return func;
 }
 

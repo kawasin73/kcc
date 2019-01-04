@@ -217,8 +217,16 @@ static Node *assign() {
     return lhs;
 }
 
+static Node *stmt();
+
 // alias
 static Node *expr() {
+    if (consume('{')) {
+        Node *node = new_node();
+        node->op = ND_STMT_EXPR;
+        node->expr = compound_stmt();
+        return node;
+    }
     return assign();
 }
 

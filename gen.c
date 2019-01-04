@@ -2,8 +2,6 @@
 #include <assert.h>
 #include "kcc.h"
 
-static int ret = 0;
-
 static char *regname(int siz, int idx) {
     // URL: https://www.sigbus.info/compilerbook/#整数レジスタの一覧
     static char *lreg[] = {"al", "dil", "sil", "dl", "cl", "r8b", "r9b"};
@@ -26,6 +24,10 @@ static void fill_zero(int siz, int idx) {
     printf("  movzx %s, %s\n", regname(8, idx), regname(siz, idx));
 }
 
+static char *label_end(int i) {
+    return format(".Lend%d", i);
+}
+
 static void gen_stmt(IR *ir) {
     switch (ir->op) {
     case IR_PUSH_IMM:
@@ -36,18 +38,21 @@ static void gen_stmt(IR *ir) {
         printf("  sub rax, %d\n", ir->val);
         printf("  push rax\n");
         return;
-    case IR_LABEL_ADDR:
+    case IR_PUSH:
+        printf("  push %s\n", regname(8, 0));
+        return;
+    case IR_POP:
+        printf("  pop %s\n", regname(8, 0));
+        return;
+    case IR_ADDR_LABEL:
         // TODO: Mach-O only. change to ELF compatible
         printf("  mov rax, [%s@GOTPCREL + rip]\n", ir->name);
         printf("  push rax\n");
         return;
-    case IR_GLOBAL_ADDR:
+    case IR_ADDR_GLOBAL:
         // TODO: Mach-O only. change to ELF compatible
         printf("  mov rax, [_%s@GOTPCREL + rip]\n", ir->name);
         printf("  push rax\n");
-        return;
-    case IR_POP:
-        printf("  pop %s\n", regname(8, 0));
         return;
     case IR_LOAD_VAL:
         printf("  pop rax\n");
@@ -63,6 +68,9 @@ static void gen_stmt(IR *ir) {
         return;
     case IR_LABEL:
         printf(".L%d:\n", ir->val);
+        return;
+    case IR_LABEL_END:
+        printf("%s:\n", label_end(ir->val));
         return;
     case IR_IF:
         printf("  pop %s\n", regname(8, 1));
@@ -89,7 +97,7 @@ static void gen_stmt(IR *ir) {
         printf("  push %s\n", regname(8, 0));
         return;
     case IR_RETURN:
-        printf("  jmp .Lend%d\n", ret);
+        printf("  jmp %s\n", label_end(ir->val));
         return;
     }
 
@@ -149,7 +157,7 @@ static void gen_func(Function *func) {
     // set return value 0 for no return
     printf("  mov %s, 0\n", regname(8, 0));
     // epilogue
-    printf(".Lend%d:\n", ret++);
+    printf("%s:\n", label_end(func->endlabel));
     printf("  mov rsp, rbp\n");
     printf("  pop rbp\n");
     printf("  ret\n");

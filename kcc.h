@@ -129,6 +129,7 @@ enum {
     ND_RETURN,    // "return"
     ND_COMP_STMT, // Compound statements
     ND_EXPR_STMT, // Expression statement
+    ND_STMT_EXPR, // Statement expression (GNU extention) `int a = {return 0;};`
 };
 
 typedef struct Node {
@@ -142,6 +143,9 @@ typedef struct Node {
     int val;
     // ty == ND_STR
     char *str;
+
+    // endlabel for "return"
+    int endlabel;
 
     // Function name or Identifier or String literal label
     char *name;
@@ -213,15 +217,17 @@ Program *analyze(Vector *nodes);
 enum {
     IR_PUSH_IMM = 256,
     IR_PUSH_VAR_PTR,
-    IR_LABEL_ADDR,
-    IR_GLOBAL_ADDR,
+    IR_PUSH,
     IR_POP,
+    IR_ADDR_LABEL,
+    IR_ADDR_GLOBAL,
     IR_LOAD_VAL,
     IR_ASSIGN,
     IR_SET_ARG,
     IR_EQ,
     IR_NE,
     IR_LABEL,
+    IR_LABEL_END,
     IR_IF,
     IR_UNLESS,
     IR_LOGAND,
@@ -243,6 +249,7 @@ typedef struct {
     Vector *codes;
     Vector *args;
     int varsiz;
+    int endlabel;
 } Function;
 
 Vector *gen_ir(Vector *nodes);
