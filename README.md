@@ -1,5 +1,7 @@
 # kcc
 
+[![Build Status](https://travis-ci.com/kawasin73/kcc.svg?branch=master)](https://travis-ci.com/kawasin73/kcc)
+
 C compiler written by C.
 
 ## spec
